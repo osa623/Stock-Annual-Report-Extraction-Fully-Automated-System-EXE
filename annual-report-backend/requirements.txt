@@ -1,3 +1,13 @@
+pdf2image
+pyyaml
+pdfplumber
+pandas
+pillow
+flask
+flask_cors
+pymupdf
+pil
+pandas
 # PDF Processing
 PyPDF2==3.0.1
 pdfplumber==0.11.0
@@ -52,3 +62,8 @@ colorama==0.4.6
 # Testing
 pytest==8.0.0
 pytest-cov==4.1.0
+
+
+fitz==0.0.1.dev12
+flask_cors==4.0.0
+flask==3.0.0

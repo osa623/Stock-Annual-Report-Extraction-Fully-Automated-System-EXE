@@ -1,6 +1,58 @@
 # Python
 __pycache__/
 *.py[cod]
+*.pyo
+*.pyd
+*.pyc
+*.pdb
+*.egg-info/
+.eggs/
+*.egg
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+env/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Data and temp
+*.sqlite3
+data/
+temp/
+
+# Test outputs
+*.coverage
+.coverage
+htmlcov/
+
+# IDEs
+.vscode/
+.idea/
+
+# Node (frontend)
+frontend/node_modules/
+frontend/dist/
+
+# Misc
+*.bak
+*.swp
+*.swo
+
+# Ignore extracted/intermediate data
+annual-report-backend/data/processed/
+annual-report-backend/data/temp/
+annual-report-backend/data/Progerss/
+# Python
+__pycache__/
+*.py[cod]
 *$py.class
 *.so
 .Python

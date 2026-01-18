@@ -20,6 +20,7 @@ from typing import Optional, Dict, List
 import pdfplumber
 from src.extractor.shareholder_extractor import ShareholderExtractor
 from src.locator.toc_detector import TOCDetector
+from src.extractor.table_parser import TableParser
 
 # Configure logging first
 logging.basicConfig(level=logging.INFO)
@@ -63,6 +64,7 @@ IMAGES_PATH.mkdir(parents=True, exist_ok=True)
 # Initialize Shareholder Extractor and TOC Detector
 shareholder_extractor = ShareholderExtractor()
 toc_detector = TOCDetector()
+table_parser = TableParser()
 
 
 def extract_data_from_selected_pages(pdf_path, pdf_id, selected_pages):
@@ -109,6 +111,7 @@ def extract_data_from_selected_pages(pdf_path, pdf_id, selected_pages):
             
             # Initialize statement data
             extracted_data['statements'][statement_type] = {}
+            current_schema = None  # Reset schema for new statement type
             
             # Process each page
             for page_num in pages:
@@ -162,103 +165,15 @@ def extract_data_from_selected_pages(pdf_path, pdf_id, selected_pages):
                     except Exception as e:
                         logger.error(f"  OCR failed: {str(e)}")
                 
-                # Parse lines into key-value pairs with year-based structure
-                parsed_data = {}
+                # Parse lines using TableParser
+                # Pass current_schema to maintain consistency across pages of the same statement
+                parsed_data, schema = table_parser.parse_lines(extracted_lines, schema=current_schema)
                 
-                # Try to detect the year from the document
-                current_year = None
-                for line in extracted_lines[:20]:  # Check first 20 lines for year
-                    year_match = re.search(r'(20\d{2})', line)
-                    if year_match:
-                        current_year = int(year_match.group(1))
-                        break
-                
-                # Default to current year if not found
-                if not current_year:
-                    current_year = datetime.now().year
-                
-                previous_year = current_year - 1
-                logger.info(f"  Detected years: {current_year}, {previous_year}")
-                
-                # Helper function to check if a line is likely a numeric value
-                def is_numeric_value(text):
-                    # Remove common separators and check if it's a number
-                    cleaned = text.replace(',', '').replace('(', '').replace(')', '').replace('-', '').replace('.', '').strip()
-                    return cleaned.isdigit() or (cleaned and all(c.isdigit() or c in '.,()-' for c in text))
-                
-                i = 0
-                while i < len(extracted_lines):
-                    line = extracted_lines[i].strip()
-                    
-                    # Skip very short lines
-                    if len(line) < 3:
-                        i += 1
-                        continue
-                    
-                    # Skip standalone page numbers
-                    if re.match(r'^\d+$', line) and len(line) < 4:
-                        i += 1
-                        continue
-                    
-                    # Check if line has multiple whitespace-separated parts (data on same line)
-                    parts = re.split(r'\s{2,}|\t+', line)
-                    
-                    if len(parts) >= 2 and is_numeric_value(parts[1]):
-                        # Data is on the same line: "Label    Value1    Value2"
-                        key = parts[0].strip()
-                        parsed_data[key] = {
-                            str(current_year): parts[1].strip()
-                        }
-                        
-                        # Store additional values if present (previous year)
-                        if len(parts) > 2 and is_numeric_value(parts[2]):
-                            parsed_data[key][str(previous_year)] = parts[2].strip()
-                        
-                        i += 1
-                        
-                    elif not is_numeric_value(line) and i + 1 < len(extracted_lines):
-                        # Current line is a label, look ahead for values
-                        key = line
-                        
-                        # Look at next lines to find numeric values
-                        j = i + 1
-                        values_found = []
-                        
-                        # Skip note numbers (single or double digit numbers)
-                        while j < len(extracted_lines):
-                            next_line = extracted_lines[j].strip()
-                            
-                            # Skip note numbers (typically 1-2 digits)
-                            if re.match(r'^\d{1,2}$', next_line):
-                                j += 1
-                                continue
-                            
-                            # If it's a numeric value, collect it
-                            if is_numeric_value(next_line) and len(next_line) > 2:
-                                values_found.append(next_line)
-                                j += 1
-                                # Collect up to 2 values (current year, previous year)
-                                if len(values_found) >= 2:
-                                    break
-                            else:
-                                # Not a numeric value, stop looking
-                                break
-                        
-                        # Store the key-value pair with year structure
-                        if values_found:
-                            parsed_data[key] = {
-                                str(current_year): values_found[0]
-                            }
-                            # Store second value if present (usually previous year)
-                            if len(values_found) > 1:
-                                parsed_data[key][str(previous_year)] = values_found[1]
-                        else:
-                            # No values found, store empty
-                            parsed_data[key] = {}
-                        
-                        i = j
-                    else:
-                        i += 1
+                # Update schema if we found one (and didn't have one, or improved it?)
+                # Usually we trust the first schema we find in the statement.
+                if schema and not current_schema:
+                    current_schema = schema
+                    logger.info(f"  Locked schema for {statement_type}: {[c.name for c in schema]}")
                 
                 logger.info(f"  Extracted {len(parsed_data)} data items from page {page_num}")
                 
@@ -283,22 +198,48 @@ def extract_data_from_selected_pages(pdf_path, pdf_id, selected_pages):
     return extracted_data
 
 
-def save_extracted_data_to_files(extracted_data, pdf_id):
+def save_extracted_data_to_files(extracted_data, pdf_id, original_filename=None):
     """
     Save extracted data to both JSON and Excel files.
+    Follows structure: [Sector]/[Company]/[Year]/[Filename].json
     
     Args:
         extracted_data: Dictionary containing extracted text data
         pdf_id: Unique identifier for the PDF
+        original_filename: Original PDF filename for parsing hierarchy
     
     Returns:
         Dictionary with file paths
     """
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     
+    # Determine Output Directory
+    output_dir = PROCESSED_DATA_PATH
+    
+    if original_filename:
+        try:
+            # Expected format: Sector_Company_Year.pdf
+            stem = Path(original_filename).stem
+            parts = stem.split('_')
+            
+            if len(parts) >= 3:
+                sector = parts[0]
+                year = parts[-1]
+                # Join middle parts as company name (in case company has underscores, though convention says CamelCase)
+                company = "_".join(parts[1:-1])
+                
+                # Create hierarchy: Sector/Company/Year
+                output_dir = PROCESSED_DATA_PATH / sector / company / year
+                output_dir.mkdir(parents=True, exist_ok=True)
+                logger.info(f"Using structured output directory: {output_dir}")
+            else:
+                logger.warning(f"Filename '{original_filename}' does not match Sector_Company_Year format. Using default.")
+        except Exception as e:
+            logger.warning(f"Error parsing filename structure: {e}. Using default.")
+            
     # JSON file
-    json_filename = f"{pdf_id}_ocr_{timestamp}.json"
-    json_path = PROCESSED_DATA_PATH / json_filename
+    json_filename = f"{pdf_id}.json"
+    json_path = output_dir / json_filename
     
     with open(json_path, 'w', encoding='utf-8') as f:
         json.dump(extracted_data, f, indent=2, ensure_ascii=False)
@@ -306,8 +247,8 @@ def save_extracted_data_to_files(extracted_data, pdf_id):
     logger.info(f"Saved JSON file: {json_path}")
     
     # Excel file
-    excel_filename = f"{pdf_id}_ocr_{timestamp}.xlsx"
-    excel_path = PROCESSED_DATA_PATH / excel_filename
+    excel_filename = f"{pdf_id}.xlsx"
+    excel_path = output_dir / excel_filename
     
     with pd.ExcelWriter(excel_path, engine='openpyxl') as writer:
         # Create summary sheet
@@ -730,7 +671,12 @@ def extract_data_from_pages(pdf_id):
         extracted_data = extract_data_from_selected_pages(pdf_path, pdf_id, selected_pages)
         
         # Save to JSON and Excel files
-        file_paths = save_extracted_data_to_files(extracted_data, pdf_id)
+        # Pass the original filename for structured organization
+        file_paths = save_extracted_data_to_files(
+            extracted_data, 
+            pdf_id, 
+            original_filename=pdf_info["name"] if pdf_info else None
+        )
         
         # Count total items extracted
         total_items = 0
@@ -751,7 +697,8 @@ def extract_data_from_pages(pdf_id):
             "statements_processed": list(extracted_data.get('statements', {}).keys()),
             "json_file": file_paths['json_filename'],
             "excel_file": file_paths['excel_filename'],
-            "output_dir": str(PROCESSED_DATA_PATH),
+            "output_dir": str(PROCESSED_DATA_PATH), # Technically this might be deep nested now
+            "full_output_path": str(Path(file_paths['json_file']).parent),
             "extraction_summary": {
                 "total_pages": total_pages,
                 "total_items": total_items,
@@ -860,10 +807,17 @@ def get_investor_relations_images(pdf_id):
         
         # Extract full page image for each detected page
         all_images = []
-        for page_num in pages:
-            logger.info(f"Extracting full page image from page {page_num}")
-            page_images = shareholder_extractor.extract_page_images(pdf_path, page_num)
-            all_images.extend(page_images)
+        for page_item in pages:
+            # page_item can be an int (from simple list) or dict (from detection result)
+            if isinstance(page_item, dict):
+                page_num = page_item.get('page_num')
+            else:
+                page_num = page_item
+                
+            if page_num:
+                logger.info(f"Extracting full page image from page {page_num}")
+                page_images = shareholder_extractor.extract_page_images(pdf_path, page_num)
+                all_images.extend(page_images)
         
         response_data = {
             'pdf_id': pdf_id,
@@ -942,6 +896,105 @@ def extract_investor_relations_table(pdf_id):
         
     except Exception as e:
         logger.error(f"Extraction error: {str(e)}", exc_info=True)
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/pdfs/<pdf_id>/investor-relations/extract-batch', methods=['POST'])
+def extract_investor_relations_batch(pdf_id):
+    """
+    Extract investor relations information from MULTIPLE detected pages.
+    """
+    try:
+        data = request.get_json() or {}
+        pages = data.get('pages')
+        
+        if not pages:
+            return jsonify({'error': 'pages array required'}), 400
+        
+        # Find PDF
+        pdfs_by_category = scan_pdfs()
+        pdf_data = None
+        for category_pdfs in pdfs_by_category.values():
+            for pdf in category_pdfs:
+                if pdf['id'] == pdf_id:
+                    pdf_data = pdf
+                    break
+            if pdf_data:
+                break
+        
+        if not pdf_data:
+            return jsonify({'error': 'PDF not found'}), 404
+            
+        pdf_path = pdf_data['path']
+        logger.info(f"Batch extracting investor relations for PDF: {pdf_path}, Pages: {len(pages)}")
+        
+        # Extract from each page
+        all_extracted_data = {}
+        total_shareholders = 0
+        
+        for page_item in pages:
+            # Handle if page_item is passed as dict
+            if isinstance(page_item, dict):
+                page_num = page_item.get('page_num')
+            else:
+                page_num = page_item
+                
+            if not page_num:
+                continue
+
+            logger.info(f"Extracting shareholder data from page {page_num}")
+            
+            # Use full page extraction
+            result = shareholder_extractor.extract_table_from_page(pdf_path, page_num, bbox=None)
+            
+            if result['success'] and result['data']:
+                # Merge data
+                for name, info in result['data'].items():
+                    all_extracted_data[name] = info
+                    total_shareholders += 1
+
+        # Save to File
+        output_dir = PROCESSED_DATA_PATH
+        original_filename = pdf_data['name']
+        
+        if original_filename:
+            try:
+                stem = Path(original_filename).stem
+                parts = stem.split('_')
+                if len(parts) >= 3:
+                    sector = parts[0]
+                    year = parts[-1]
+                    company = "_".join(parts[1:-1])
+                    output_dir = PROCESSED_DATA_PATH / sector / company / year 
+                    output_dir.mkdir(parents=True, exist_ok=True)
+            except:
+                pass
+        
+        # Save JSON
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        json_filename = f"{pdf_id}_investor_relations_{timestamp}.json"
+        json_path = output_dir / json_filename
+        
+        final_output = {
+            "pdf_id": pdf_id,
+            "extraction_date": datetime.now().isoformat(),
+            "total_shareholders": len(all_extracted_data),
+            "data": all_extracted_data,
+            "source_pages": pages
+        }
+        
+        with open(json_path, 'w', encoding='utf-8') as f:
+            json.dump(final_output, f, indent=2, ensure_ascii=False)
+            
+        return jsonify({
+            "success": True,
+            "message": f"Extracted {len(all_extracted_data)} shareholders from {len(pages)} pages",
+            "saved_to": str(json_path),
+            "data": final_output
+        })
+        
+    except Exception as e:
+        logger.error(f"Batch extraction error: {str(e)}", exc_info=True)
         return jsonify({'error': str(e)}), 500
 
 

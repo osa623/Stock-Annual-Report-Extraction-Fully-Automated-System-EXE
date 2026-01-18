@@ -350,7 +350,7 @@ class MLExtractionPipeline:
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         output_filename = f"{pdf_name}_{timestamp}.json"
         
-        output_dir = Path("data/processed/extracted_json")
+        output_dir = Path("data/processed/statement_jsons")
         output_dir.mkdir(parents=True, exist_ok=True)
         
         output_path = output_dir / output_filename

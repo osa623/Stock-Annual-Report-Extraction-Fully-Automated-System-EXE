@@ -53,7 +53,7 @@ CORS(app)  # Enable CORS for frontend
 
 # Configuration
 RAW_DATA_PATH = Path(__file__).parent / "data" / "raw"
-PROCESSED_DATA_PATH = Path(__file__).parent / "data" / "processed" / "extracted_json"
+PROCESSED_DATA_PATH = Path(__file__).parent / "data" / "processed" / "statement_jsons"
 IMAGES_PATH = Path(__file__).parent / "app" / "statement_images"
 
 # Ensure paths exist

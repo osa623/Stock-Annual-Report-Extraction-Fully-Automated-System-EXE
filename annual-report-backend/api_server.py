@@ -53,7 +53,7 @@ CORS(app)  # Enable CORS for frontend
 
 # Configuration
 RAW_DATA_PATH = Path(__file__).parent / "data" / "raw"
-PROCESSED_DATA_PATH = Path(__file__).parent / "data" / "processed" / "extracted_json"
+PROCESSED_DATA_PATH = Path(__file__).parent / "data" / "processed" / "statement_jsons"
 IMAGES_PATH = Path(__file__).parent / "app" / "statement_images"
 
 # Ensure paths exist
@@ -995,6 +995,249 @@ def extract_investor_relations_batch(pdf_id):
         
     except Exception as e:
         logger.error(f"Batch extraction error: {str(e)}", exc_info=True)
+        return jsonify({'error': str(e)}), 500
+
+
+
+@app.route('/api/pdfs/<pdf_id>/subsidiary-chart/detect', methods=['POST'])
+def detect_subsidiary_pages(pdf_id):
+    """
+    Detect pages containing Subsidiary Charts.
+    """
+    try:
+        data = request.get_json(silent=True) or {}
+        
+        # Find PDF
+        pdfs_by_category = scan_pdfs()
+        pdf_data = None
+        for category_pdfs in pdfs_by_category.values():
+            for pdf in category_pdfs:
+                if pdf['id'] == pdf_id:
+                    pdf_data = pdf
+                    break
+            if pdf_data:
+                break
+        
+        if not pdf_data:
+            return jsonify({'error': 'PDF not found'}), 404
+        
+        pdf_path = pdf_data['path']
+        logger.info(f"Scanning for Subsidiary Charts in {pdf_path}")
+        
+        detected_pages = []
+        try:
+            with pdfplumber.open(pdf_path) as pdf:
+                # Scan ALL pages (User request: "just look for all the pdf pages")
+                for page_num in range(len(pdf.pages)):
+                    page = pdf.pages[page_num]
+                    try:
+                        text = page.extract_text()
+                        if not text:
+                            continue
+                            
+                        # Heuristic: Line-based Header Detection
+                        lines = text.split('\n')
+                        
+                        found_main_header = False
+                        found_sub_header = False
+                        
+                        for line in lines:
+                            clean_line = line.strip().upper()
+                            if not clean_line:
+                                continue
+                                
+                            if "NOTES TO THE FINANCIAL STATEMENTS" in clean_line or "FINANCIAL STATEMENTS" == clean_line:
+                                found_main_header = True
+                                continue
+                                
+                            keyword_hit = any(kw == clean_line or (kw in clean_line and len(clean_line.split()) < 10) 
+                                              for kw in ["SUBSIDIARIES", "SUBSIDIARY", "GROUP STRUCTURE", "INVESTMENTS IN SUBSIDIARIES"])
+                            
+                            if keyword_hit:
+                                found_sub_header = True
+                        
+                        if found_main_header and found_sub_header:
+                            logger.info(f"Page {page_num+1}: Strong Match (Main + Sub Header)")
+                            detected_pages.append({
+                                'page_num': page_num + 1,
+                                'confidence': 0.95,
+                                'type': 'subsidiary_chart_strong'
+                            })
+                        elif found_sub_header:
+                             # Fallback: Found "Subsidiaries" header but no "Notes" header (maybe on prev page)
+                            logger.info(f"Page {page_num+1}: Weak Match (Sub Header Only)")
+                            detected_pages.append({
+                                'page_num': page_num + 1,
+                                'confidence': 0.6,
+                                'type': 'subsidiary_chart_weak'
+                            })
+
+                    except Exception as e:
+                        logger.error(f"Page {page_num+1} scan error: {e}")
+                        continue
+                        
+            # Sort by confidence
+            detected_pages.sort(key=lambda x: x['confidence'], reverse=True)
+            
+            # Limit results to avoid overwhelming UI (but capture enough)
+            if len(detected_pages) > 20:
+                detected_pages = detected_pages[:20]
+
+
+        except Exception as e:
+            logger.error(f"Error extracting text: {e}")
+            
+        return jsonify({
+            'pdf_id': pdf_id,
+            'pages': detected_pages,
+            'count': len(detected_pages)
+        })
+        
+    except Exception as e:
+        logger.error(f"Detection error: {str(e)}", exc_info=True)
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/pdfs/<pdf_id>/subsidiary-chart/images', methods=['POST'])
+def get_subsidiary_chart_images(pdf_id):
+    """
+    Get images for detected subsidiary chart pages.
+    """
+    try:
+        data = request.get_json(silent=True) or {}
+        pages = data.get('pages', [])
+        
+        # Handle comma-separated string if passed (backward compatibility or weird frontend behavior)
+        if isinstance(pages, str):
+            pages = [int(p) for p in pages.split(',') if p.strip()]
+            
+        if not pages:
+            return jsonify({'error': 'pages parameter required'}), 400
+
+            
+        # Find PDF
+        pdfs_by_category = scan_pdfs()
+        pdf_data = None
+        for category_pdfs in pdfs_by_category.values():
+            for pdf in category_pdfs:
+                if pdf['id'] == pdf_id:
+                    pdf_data = pdf
+                    break
+            if pdf_data:
+                break
+        
+        if not pdf_data:
+            return jsonify({'error': 'PDF not found'}), 404
+        
+        if not pdf_data:
+            return jsonify({'error': 'PDF not found'}), 404
+        
+        pdf_path = pdf_data['path']
+        logger.info(f"Generating images for subsidiary chart pages: {pages} in {pdf_path}")
+        
+        # Extract full page image for each detected page
+        all_images = []
+        for page_item in pages:
+            try:
+                if isinstance(page_item, dict):
+                    page_num = int(page_item.get('page_num'))
+                else:
+                    page_num = int(page_item)
+                    
+                if page_num:
+                    # Use existing extraction function
+                    logger.info(f"Extracting image for page {page_num}")
+                    page_images = shareholder_extractor.extract_page_images(pdf_path, page_num)
+                    all_images.extend(page_images)
+            except Exception as e:
+                logger.error(f"Error processing page {page_item}: {e}")
+                continue
+        
+        response_data = {
+            'pdf_id': pdf_id,
+            'pages': pages,
+            'images': all_images,
+            'image_count': len(all_images)
+        }
+        
+        return jsonify(response_data)
+        
+    except Exception as e:
+        logger.error(f"Image extraction error: {str(e)}", exc_info=True)
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/pdfs/<pdf_id>/subsidiary-chart/extract', methods=['POST'])
+def extract_subsidiary_chart_endpoint(pdf_id):
+    """
+    Extract subsidiary chart from a specific page.
+    """
+    try:
+        data = request.get_json() or {}
+        page_num = data.get('page_num')
+        
+        if not page_num:
+            return jsonify({'error': 'page_num required'}), 400
+        
+        # Find PDF
+        pdfs_by_category = scan_pdfs()
+        pdf_data = None
+        for category_pdfs in pdfs_by_category.values():
+            for pdf in category_pdfs:
+                if pdf['id'] == pdf_id:
+                    pdf_data = pdf
+                    break
+            if pdf_data:
+                break
+        
+        if not pdf_data:
+            return jsonify({'error': 'PDF not found'}), 404
+        
+        pdf_path = pdf_data['path']
+        
+        # Initialize Extractor
+        from src.extractor.chart_extractor import ChartExtractor
+        extractor = ChartExtractor()
+        
+        chart_data = {"nodes": [], "edges": []}
+        
+        with pdfplumber.open(pdf_path) as pdf:
+            try:
+                page = pdf.pages[page_num - 1] 
+                chart_data = extractor.extract_from_page(page)
+            except IndexError:
+                return jsonify({'error': 'Page index out of range'}), 400
+        
+        # Save to output folder
+        filename = Path(pdf_path).name
+        parts = filename.replace('.pdf', '').split('_')
+        
+        sector = parts[0] if len(parts) > 0 else 'Uncategorized'
+        company = parts[1] if len(parts) > 1 else 'UnknownCompany'
+        year = parts[2] if len(parts) > 2 else str(datetime.now().year)
+        
+        # User request: processed/subsidiaries/[Sector]/[Company]/[Year]
+        # PROCESSED_DATA_PATH is .../processed/statement_jsons
+        # So we go up one level to .../processed and then into 'subsidiaries'
+        output_dir = PROCESSED_DATA_PATH.parent / 'subsidiaries' / sector / company / year
+        output_dir.mkdir(parents=True, exist_ok=True)
+        
+        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+        output_file = output_dir / f"subsidiary_chart.json"
+        
+        with open(output_file, 'w') as f:
+            json.dump(chart_data, f, indent=2)
+            
+        return jsonify({
+            'success': True,
+            'data': chart_data,
+            'saved_to': str(output_file),
+            'nodes_count': len(chart_data['nodes']),
+            'edges_count': len(chart_data['edges'])
+        })
+        
+    except Exception as e:
+        logger.error(f"Extraction error: {str(e)}", exc_info=True)
         return jsonify({'error': str(e)}), 500
 
 

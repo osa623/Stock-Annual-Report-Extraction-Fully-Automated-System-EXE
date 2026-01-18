@@ -61,7 +61,7 @@ const InvestorRelationsViewer = ({ pdfId }) => {
 
   // Step 3: Extract data from selected image
   const handleExtractData = async () => {
-    if (!selectedPage || !selectedImage) {
+    if (!selectedImage) {
       setError('Please select a page and image first');
       return;
     }
@@ -71,7 +71,10 @@ const InvestorRelationsViewer = ({ pdfId }) => {
       setError(null);
 
       const bbox = selectedImage.bbox || null;
-      const data = await pdfService.extractInvestorRelationsData(pdfId, selectedPage, bbox);
+      // Use the page_num from the selected image to ensure sync
+      const pageNum = selectedImage.page_num || selectedPage;
+
+      const data = await pdfService.extractInvestorRelationsData(pdfId, pageNum, bbox);
 
       setExtractedData(data);
 
@@ -169,8 +172,8 @@ const InvestorRelationsViewer = ({ pdfId }) => {
 
                   <div className="ml-6">
                     <span className={`px-4 py-2 rounded-lg text-xs font-medium ${page.type === 'shareholders_page'
-                        ? 'bg-gray-900 text-white'
-                        : 'bg-gray-200 text-gray-700'
+                      ? 'bg-gray-900 text-white'
+                      : 'bg-gray-200 text-gray-700'
                       }`}>
                       {page.type === 'shareholders_page' ? 'Shareholder Data' : 'Investor Relations'}
                     </span>
@@ -206,10 +209,10 @@ const InvestorRelationsViewer = ({ pdfId }) => {
                 <div className="bg-white border-b border-gray-100 px-4 py-3 flex items-center justify-between">
                   <h4 className="font-semibold text-gray-900 text-sm">Page {image.page_num}</h4>
                   <button
-                    onClick={() => setSelectedImage(image)}
+                    onClick={() => { setSelectedImage(image); setSelectedPage(image.page_num); }}
                     className={`px-3 py-1 rounded text-xs font-medium transition-colors duration-200 ${selectedImage === image
-                        ? 'bg-black text-white'
-                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                      ? 'bg-black text-white'
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                       }`}
                   >
                     {selectedImage === image ? 'Selected' : 'Select'}
@@ -218,7 +221,7 @@ const InvestorRelationsViewer = ({ pdfId }) => {
 
                 {/* Image Preview */}
                 <div
-                  onClick={() => setSelectedImage(image)}
+                  onClick={() => { setSelectedImage(image); setSelectedPage(image.page_num); }}
                   className={`cursor-pointer p-2 flex-grow flex items-center justify-center bg-gray-50 transition-colors duration-200 ${selectedImage === image ? 'bg-gray-100 ring-2 ring-inset ring-black' : 'hover:bg-gray-100'
                     }`}
                 >

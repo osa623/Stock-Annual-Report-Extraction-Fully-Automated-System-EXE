@@ -899,6 +899,105 @@ def extract_investor_relations_table(pdf_id):
         return jsonify({'error': str(e)}), 500
 
 
+@app.route('/api/pdfs/<pdf_id>/investor-relations/extract-batch', methods=['POST'])
+def extract_investor_relations_batch(pdf_id):
+    """
+    Extract investor relations information from MULTIPLE detected pages.
+    """
+    try:
+        data = request.get_json() or {}
+        pages = data.get('pages')
+        
+        if not pages:
+            return jsonify({'error': 'pages array required'}), 400
+        
+        # Find PDF
+        pdfs_by_category = scan_pdfs()
+        pdf_data = None
+        for category_pdfs in pdfs_by_category.values():
+            for pdf in category_pdfs:
+                if pdf['id'] == pdf_id:
+                    pdf_data = pdf
+                    break
+            if pdf_data:
+                break
+        
+        if not pdf_data:
+            return jsonify({'error': 'PDF not found'}), 404
+            
+        pdf_path = pdf_data['path']
+        logger.info(f"Batch extracting investor relations for PDF: {pdf_path}, Pages: {len(pages)}")
+        
+        # Extract from each page
+        all_extracted_data = {}
+        total_shareholders = 0
+        
+        for page_item in pages:
+            # Handle if page_item is passed as dict
+            if isinstance(page_item, dict):
+                page_num = page_item.get('page_num')
+            else:
+                page_num = page_item
+                
+            if not page_num:
+                continue
+
+            logger.info(f"Extracting shareholder data from page {page_num}")
+            
+            # Use full page extraction
+            result = shareholder_extractor.extract_table_from_page(pdf_path, page_num, bbox=None)
+            
+            if result['success'] and result['data']:
+                # Merge data
+                for name, info in result['data'].items():
+                    all_extracted_data[name] = info
+                    total_shareholders += 1
+
+        # Save to File
+        output_dir = PROCESSED_DATA_PATH
+        original_filename = pdf_data['name']
+        
+        if original_filename:
+            try:
+                stem = Path(original_filename).stem
+                parts = stem.split('_')
+                if len(parts) >= 3:
+                    sector = parts[0]
+                    year = parts[-1]
+                    company = "_".join(parts[1:-1])
+                    output_dir = PROCESSED_DATA_PATH / sector / company / year 
+                    output_dir.mkdir(parents=True, exist_ok=True)
+            except:
+                pass
+        
+        # Save JSON
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        json_filename = f"{pdf_id}_investor_relations_{timestamp}.json"
+        json_path = output_dir / json_filename
+        
+        final_output = {
+            "pdf_id": pdf_id,
+            "extraction_date": datetime.now().isoformat(),
+            "total_shareholders": len(all_extracted_data),
+            "data": all_extracted_data,
+            "source_pages": pages
+        }
+        
+        with open(json_path, 'w', encoding='utf-8') as f:
+            json.dump(final_output, f, indent=2, ensure_ascii=False)
+            
+        return jsonify({
+            "success": True,
+            "message": f"Extracted {len(all_extracted_data)} shareholders from {len(pages)} pages",
+            "saved_to": str(json_path),
+            "data": final_output
+        })
+        
+    except Exception as e:
+        logger.error(f"Batch extraction error: {str(e)}", exc_info=True)
+        return jsonify({'error': str(e)}), 500
+
+
 if __name__ == '__main__':
     logger.info("Starting FD Extractor API Server...")
     logger.info(f"Raw data path: {RAW_DATA_PATH}")

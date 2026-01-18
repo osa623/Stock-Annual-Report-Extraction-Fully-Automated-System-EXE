@@ -179,7 +179,7 @@ class TOCDetector:
     def _scan_for_investor_relations_pages(self, pdf) -> List[Dict]: 
         """
         Find INVESTOR RELATIONS section, then find all shareholder-related pages.
-        Returns all pages with shareholder headings like Top 20/Twenty Major Shareholders.
+        Returns multiple pages (range of 8 pages from title) to capture context.
         """
         results = []
         investor_relations_page_idx = -1
@@ -202,7 +202,6 @@ class TOCDetector:
         ]
         
         # Step 1: Scan ALL pages for Investor Relations Title AND Shareholder Tables directly
-        # We don't want to stop at the first "Investor Relations" match because it might be in the TOC
         
         for page_idx in range(len(pdf.pages)):
             try:
@@ -219,18 +218,15 @@ class TOCDetector:
                 
                 # Check for "INVESTOR RELATIONS" as a Main Title
                 # Heuristic: It should be in the top part of the page, or be a standalone line
-                if 'INVESTOR RELATIONS' in text_upper:
+                if investor_relations_page_idx == -1 and 'INVESTOR RELATIONS' in text_upper:
                     # check if it's a title (short line)
                     lines = text_upper.split('\n')
-                    for line in lines[:10]: # Check first 10 lines
-                        if 'INVESTOR RELATIONS' in line and len(line) < 40:
+                    for line in lines[:15]: # Check first 15 lines
+                        if 'INVESTOR RELATIONS' in line and len(line) < 60:
                             investor_relations_page_idx = page_idx
                             break
                 
                 # Check for Shareholder Table Captions DIRECTLY
-                # This is robust because even if we miss the "Investor Relations" section title,
-                # we will still find the table.
-                found_table = False
                 for indicator in shareholder_indicators:
                     if indicator in text_upper:
                         results.append({
@@ -240,35 +236,37 @@ class TOCDetector:
                             'source': 'direct_caption_scan',
                             'type': 'shareholders_page'
                         })
-                        found_table = True
                         break  # Found a table on this page
                 
             except Exception as e:
                 continue
         
+        # Step 2: If we found "Investor Relations" section title, include that page range
+        # User requested first ~5-8 pages from the section start
+        if investor_relations_page_idx != -1:
+            # Add range of 8 pages (or until end of PDF)
+            range_end = min(investor_relations_page_idx + 8, len(pdf.pages))
+            for i in range(investor_relations_page_idx, range_end):
+                results.append({
+                    'page_num': i + 1,
+                    'confidence': 0.85, # Good confidence since it's in the section
+                    'evidence': "Within INVESTOR RELATIONS section range",
+                    'source': 'section_range_scan',
+                    'type': 'investor_relations_section'
+                })
+
         # Deduplicate results based on page_num
         unique_results = []
         seen_pages = set()
+        # Sort results by page_num to keep order
+        results.sort(key=lambda x: x['page_num'])
+        
         for res in results:
             if res['page_num'] not in seen_pages:
                 unique_results.append(res)
                 seen_pages.add(res['page_num'])
         
-        # If we found shareholder tables directly, great!
-        if unique_results:
-             return unique_results
-
-        # Fallback: If we found "Investor Relations" section but no tables, return that page
-        if investor_relations_page_idx != -1:
-             return [{
-                'page_num': investor_relations_page_idx + 1,
-                'confidence': 0.80,
-                'evidence': "Found 'INVESTOR RELATIONS' section title (no specific tables found)",
-                'source': 'section_title_scan',
-                'type': 'investor_relations'
-            }]
-            
-        return []
+        return unique_results
     
     def _find_actual_page(self, pdf, reported_page: int, keywords: List[str]) -> int:
         """

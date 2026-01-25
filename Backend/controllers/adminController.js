@@ -5,10 +5,10 @@ const generateToken = require('../utils/generateToken');
 // @access  Public
 const registerAdmin = async (req, res) => {
     try {
-        const { email, password, code } = req.body;
+        const { email, password } = req.body;
 
         // Validation
-        if (!email || !password || !code) {
+        if (!email || !password) {
             return res.status(400).json({ message: 'Please add all fields' });
         }
 
@@ -26,14 +26,12 @@ const registerAdmin = async (req, res) => {
         const admin = await Admin.create({
             email,
             password: hashedPassword,
-            code
         });
 
         if (admin) {
             res.status(201).json({
                 _id: admin.id,
                 email: admin.email,
-                code: admin.code,
                 token: generateToken(admin._id)
             });
         } else {
@@ -58,7 +56,6 @@ const loginAdmin = async (req, res) => {
             res.json({
                 _id: admin.id,
                 email: admin.email,
-                code: admin.code,
                 token: generateToken(admin._id)
             });
         } else {

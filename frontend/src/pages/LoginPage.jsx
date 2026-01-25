@@ -56,6 +56,17 @@ const LoginPage = () => {
                             className="w-full px-4 py-4 text-base bg-white border border-gray-300 rounded-xl focus:outline-none focus:ring-1 focus:ring-black focus:border-black transition-all duration-200 placeholder-gray-400"
                         />
                     </div>
+                    <div className="relative">
+                        <input
+                            type="code"
+                            name="code"
+                            placeholder="Code"
+                            required
+                            value={formData.code}
+                            onChange={handleChange}
+                            className="w-full px-4 py-4 text-base bg-white border border-gray-300 rounded-xl focus:outline-none focus:ring-1 focus:ring-black focus:border-black transition-all duration-200 placeholder-gray-400"
+                        />
+                    </div>
 
                     {/* Action Button */}
                     <div className="pt-4">

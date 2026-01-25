@@ -1,0 +1,75 @@
+const generateToken = require('../utils/generateToken');
+
+// @desc    Register a new admin
+// @route   POST /api/admin/register
+// @access  Public
+const registerAdmin = async (req, res) => {
+    try {
+        const { email, password, code } = req.body;
+
+        // Validation
+        if (!email || !password || !code) {
+            return res.status(400).json({ message: 'Please add all fields' });
+        }
+
+        // Check if admin already exists
+        const adminExists = await Admin.findOne({ email });
+        if (adminExists) {
+            return res.status(400).json({ message: 'Admin already exists' });
+        }
+
+        // Hash password
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(password, salt);
+
+        // Create admin
+        const admin = await Admin.create({
+            email,
+            password: hashedPassword,
+            code
+        });
+
+        if (admin) {
+            res.status(201).json({
+                _id: admin.id,
+                email: admin.email,
+                code: admin.code,
+                token: generateToken(admin._id)
+            });
+        } else {
+            res.status(400).json({ message: 'Invalid admin data' });
+        }
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+// @desc    Authenticate a admin
+// @route   POST /api/admin/login
+// @access  Public
+const loginAdmin = async (req, res) => {
+    try {
+        const { email, password } = req.body;
+
+        // Check for admin email
+        const admin = await Admin.findOne({ email });
+
+        if (admin && (await bcrypt.compare(password, admin.password))) {
+            res.json({
+                _id: admin.id,
+                email: admin.email,
+                code: admin.code,
+                token: generateToken(admin._id)
+            });
+        } else {
+            res.status(400).json({ message: 'Invalid credentials' });
+        }
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+module.exports = {
+    registerAdmin,
+    loginAdmin,
+};

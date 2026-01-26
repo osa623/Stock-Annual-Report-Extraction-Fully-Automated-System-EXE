@@ -33,7 +33,12 @@ export default function MFAverifyForm() {
             const data = await res.json();
             if (res.ok) {
                 setSuccess("MFA verification successful! You are now logged in.");
-                window.location.href = "/home";
+                if (data.token) {
+                    localStorage.setItem("token", data.token);
+                }
+                setTimeout(() => {
+                    window.location.href = "/home";
+                }, 1000);
             } else {
                 setError(data.message || "MFA verification failed");
             }

@@ -1,4 +1,6 @@
 const generateToken = require('../utils/generateToken');
+const Admin = require('../models/Admin');
+const bcrypt = require('bcryptjs');
 
 // @desc    Register a new admin
 // @route   POST /api/admin/register
@@ -48,9 +50,11 @@ const registerAdmin = async (req, res) => {
 const loginAdmin = async (req, res) => {
     try {
         const { email, password } = req.body;
+        console.log(`Login Attempt: ${email}`);
 
         // Check for admin email
         const admin = await Admin.findOne({ email });
+        console.log(`User found: ${!!admin}`);
 
         if (admin && (await bcrypt.compare(password, admin.password))) {
             res.json({

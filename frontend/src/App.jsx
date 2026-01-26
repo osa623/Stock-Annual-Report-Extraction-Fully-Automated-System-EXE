@@ -1,6 +1,12 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+
+
+//componenets
 import Header from './components/Header';
+import ProtectedRoutes from './components/ProtectedRoutes';
+
+//pages
 import Dashboard from './pages/Dashboard';
 import PDFDetail from './pages/PDFDetail';
 import CompanyDetails from './pages/CompanyDetails';
@@ -9,7 +15,10 @@ import ShareholderPage from './pages/ShareholderPage';
 import InvestorRelationsPage from './pages/InvestorRelationsPage';
 import SubsidiaryPage from './pages/SubsidiaryPage';
 import Home from './pages/Home';
-import LoginPage from './pages/LoginPage';
+import Login from './pages/Login';
+import Registration from './pages/Registration';
+import MFAsetupForm from './pages/MFAsetupForm';
+import MFAverifyForm from './pages/MFAverifyForm';
 
 function App() {
   return (
@@ -17,16 +26,59 @@ function App() {
       <div className="min-h-screen bg-white">
         <Header />
         <Routes>
-          <Route path="/home" element={<Home />} />
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/pdf/:pdfId/statements" element={<PDFDetail />} />
-          <Route path="/pdf/:pdfId/company" element={<CompanyDetails />} />
-          <Route path="/pdf/:pdfId/other" element={<OtherExtraction />} />
-          <Route path="/pdf/:pdfId/shareholders" element={<ShareholderPage />} />
-          <Route path="/pdf/:pdfId/investor-relations" element={<InvestorRelationsPage />} />
-          <Route path="/pdf/:pdfId/subsidiary" element={<SubsidiaryPage />} />
-          <Route path="/pdf/:pdfId" element={<PDFDetail />} />
+          {/* Non-Protected Routes */}
+          <Route path="/" element={<Navigate to="/login" replace />} />
+          <Route path="/register" element={<Registration />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/setup-mfa" element={<MFAsetupForm />} />
+          <Route path="/verify-mfa" element={<MFAverifyForm />} />
+
+
+          {/* Protected Routes */}
+          <Route path="/home" element={
+            <ProtectedRoutes>
+              <Home />
+            </ProtectedRoutes>} />
+
+          <Route path="/dashboard" element={
+            <ProtectedRoutes>
+              <Dashboard />
+            </ProtectedRoutes>} />
+
+          <Route path="/pdf/:pdfId/statements" element={
+            <ProtectedRoutes>
+              <PDFDetail />
+            </ProtectedRoutes>} />
+
+          <Route path="/pdf/:pdfId/company" element={
+            <ProtectedRoutes>
+              <CompanyDetails />
+            </ProtectedRoutes>} />
+
+          <Route path="/pdf/:pdfId/other" element={
+            <ProtectedRoutes>
+              <OtherExtraction />
+            </ProtectedRoutes>} />
+
+          <Route path="/pdf/:pdfId/shareholders" element={
+            <ProtectedRoutes>
+              <ShareholderPage />
+            </ProtectedRoutes>} />
+
+          <Route path="/pdf/:pdfId/investor-relations" element={
+            <ProtectedRoutes>
+              <InvestorRelationsPage />
+            </ProtectedRoutes>} />
+
+          <Route path="/pdf/:pdfId/subsidiary" element={
+            <ProtectedRoutes>
+              <SubsidiaryPage />
+            </ProtectedRoutes>} />
+
+          <Route path="/pdf/:pdfId" element={
+            <ProtectedRoutes>
+              <PDFDetail />
+            </ProtectedRoutes>} />
         </Routes>
       </div>
     </Router>

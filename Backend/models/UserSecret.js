@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 
 const userSecretSchema = new mongoose.Schema({
-    phoneNumber: {
+    email: {
         type: String,
         required: true,
         unique: true

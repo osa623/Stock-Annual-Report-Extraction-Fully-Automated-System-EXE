@@ -70,7 +70,19 @@ const loginAdmin = async (req, res) => {
     }
 };
 
+
+const getAdmin = async (req, res) => {
+    try {
+        const response = await Admin.findById(req.params.id);
+        res.status(200).json(response);
+
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+}
+
 module.exports = {
     registerAdmin,
     loginAdmin,
+    getAdmin
 };

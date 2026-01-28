@@ -863,6 +863,7 @@ def extract_investor_relations_table(pdf_id):
             return jsonify({'error': 'PDF not found'}), 404
         
         pdf_path = pdf_data['path']
+        original_filename = pdf_data.get('name')
         
         # Extract table data
         logger.info(f"Extracting investor relations data from page {page_num}")
@@ -872,12 +873,34 @@ def extract_investor_relations_table(pdf_id):
             bbox=bbox
         )
         
-        # Save to JSON
+        # Default Output Configuration
         output_dir = PROCESSED_DATA_PATH.parent / 'investor_relations'
         output_dir.mkdir(exist_ok=True)
-        
         timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-        output_file = output_dir / f"{pdf_id}_investor_relations_{timestamp}.json"
+        filename = f"{pdf_id}_investor_relations_{timestamp}.json"
+
+        # Structured Output Configuration (if filename matches Sector_Company_Year format)
+        if original_filename:
+            try:
+                # Expected: Sector_Company_Year.pdf
+                stem = Path(original_filename).stem
+                parts = stem.split('_')
+                
+                if len(parts) >= 3:
+                    sector = parts[0]
+                    year = parts[-1]
+                    company = "_".join(parts[1:-1])
+                    
+                    # Create hierarchy: Sector/Company/Year
+                    output_dir = PROCESSED_DATA_PATH.parent / 'investor_relations' / sector / company / year
+                    output_dir.mkdir(parents=True, exist_ok=True)
+                    
+                    filename = f"{company}_investor_relations_{year}.json"
+                    logger.info(f"Using structured output: {output_dir / filename}")
+            except Exception as e:
+                logger.warning(f"Filename parsing failed for '{original_filename}': {e}. Using default path.")
+        
+        output_file = output_dir / filename
         
         with open(output_file, 'w') as f:
             json.dump(extracted_data, f, indent=2)

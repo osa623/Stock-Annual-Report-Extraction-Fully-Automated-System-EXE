@@ -28,18 +28,14 @@ const Home = () => {
     const navigate = useNavigate();
 
     const features = [
+
         {
-            title: "User Management",
-            description: "Manage Users and their roles",
+            title: "PDF Data Handler",
+            description: "Manage pdf data structures",
             action: null
         },
         {
-            title: "DataBase Handling",
-            description: "Manage system data structures",
-            action: null
-        },
-        {
-            title: "PDF Extractor",
+            title: "Annual PDF Extractor",
             description: "Automated document data extraction",
             action: () => navigate('/dashboard')
         }

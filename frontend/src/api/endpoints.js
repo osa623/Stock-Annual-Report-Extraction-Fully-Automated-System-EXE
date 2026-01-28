@@ -4,6 +4,7 @@ export const API_ENDPOINTS = {
     BASE_URL,
     LOGIN: `${BASE_URL}/admin/login`,
     REGISTER: `${BASE_URL}/admin/register`,
+    GET_ADMIN: `${BASE_URL}/admin/:id`,
     SETUP_MFA: `${BASE_URL}/auth/setup`,
     VERIFY_MFA: `${BASE_URL}/auth/login`
 };

@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { API_ENDPOINTS } from "../api/endpoints";
 import { validateEmail } from "../utils/validation";
 
+
 export default function MFAsetupForm() {
     const params = new URLSearchParams(window.location.search);
     const [email] = useState(params.get("email") || "");
@@ -9,6 +10,8 @@ export default function MFAsetupForm() {
     const [success, setSuccess] = useState("");
     const [qrCode, setQrCode] = useState("");
     const [loading, setLoading] = useState(false);
+
+
 
     const handleSetup = async (e) => {
         e.preventDefault();

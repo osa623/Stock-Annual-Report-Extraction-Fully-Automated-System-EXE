@@ -32,7 +32,7 @@ const Home = () => {
         {
             title: "PDF Data Handler",
             description: "Manage pdf data structures",
-            action: null
+            action: () => navigate('/data-explorer')
         },
         {
             title: "Annual PDF Extractor",

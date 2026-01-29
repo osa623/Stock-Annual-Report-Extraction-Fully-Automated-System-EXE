@@ -56,7 +56,7 @@ CORS(app)  # Enable CORS for frontend
 
 # Configuration
 RAW_DATA_PATH = Path(__file__).parent / "data" / "raw"
-DATA_API_URL = "http://localhost:5001/api/data"
+DATA_API_URL = os.getenv("DATA_API_URL", "http://localhost:5001/api/data")
 
 def save_to_db(payload):
     """

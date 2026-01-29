@@ -32,12 +32,17 @@ const Home = () => {
         {
             title: "PDF Data Handler",
             description: "Manage pdf data structures",
-            action: null
+            action: () => navigate('/data-explorer')
         },
         {
             title: "Annual PDF Extractor",
             description: "Automated document data extraction",
             action: () => navigate('/dashboard')
+        },
+        {
+            title: "Quaterly PDF Extractor",
+            description: "Automated document data extraction",
+            action: () => navigate('/*')
         }
     ];
 

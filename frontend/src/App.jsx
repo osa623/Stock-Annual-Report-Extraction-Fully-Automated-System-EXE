@@ -20,6 +20,7 @@ import Registration from './pages/Registration';
 import MFAsetupForm from './pages/MFAsetupForm';
 import MFAverifyForm from './pages/MFAverifyForm';
 import Profile from './pages/Profile';
+import DataExplorer from './pages/DataExplorer';
 
 import AuthProvider from './utils/AuthContext';
 
@@ -87,6 +88,11 @@ function App() {
             <Route path="/profile/:userId" element={
               <ProtectedRoutes>
                 <Profile />
+              </ProtectedRoutes>} />
+
+            <Route path="/data-explorer" element={
+              <ProtectedRoutes>
+                <DataExplorer />
               </ProtectedRoutes>} />
 
           </Routes>

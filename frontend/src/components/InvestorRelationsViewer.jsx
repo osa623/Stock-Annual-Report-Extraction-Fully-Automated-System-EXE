@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { pdfService } from '../services/api';
+import { dataService } from '../services/dataService';
 
 const InvestorRelationsViewer = ({ pdfId }) => {
   const [detecting, setDetecting] = useState(false);
@@ -59,6 +60,11 @@ const InvestorRelationsViewer = ({ pdfId }) => {
     setSelectedPage(pageNum);
   };
 
+
+
+  // ... (props) 
+  // ...
+
   // Step 3: Extract data from selected image
   const handleExtractData = async () => {
     if (!selectedImage) {
@@ -78,8 +84,25 @@ const InvestorRelationsViewer = ({ pdfId }) => {
 
       setExtractedData(data);
 
-      if (data.success) {
-        alert(`✅ Successfully extracted investor relations data!\\n\\nData saved to: ${data.saved_to}`);
+      // --- SAVE TO MONGODB ---
+      if (data.success && data.metadata) {
+        try {
+          const payload = {
+            sector: data.metadata.sector,
+            company: data.metadata.company,
+            year: data.metadata.year,
+            type: 'investor_relations',
+            data: data.data,
+            pdfId: pdfId
+          };
+          await dataService.saveData(payload);
+          alert(`✅ Successfully extracted and saved to Database!`);
+        } catch (saveError) {
+          console.error("Failed to save to DB", saveError);
+          alert(`⚠️ Extracted locally but failed to save to Database: ${saveError.message}`);
+        }
+      } else if (data.success) {
+        alert(`✅ Successfully extracted investor relations data! (Local only - missing metadata)`);
       } else {
         setError('Extraction completed but no data found. Try selecting a different image.');
       }

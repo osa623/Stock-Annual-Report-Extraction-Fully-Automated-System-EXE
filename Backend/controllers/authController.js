@@ -2,6 +2,7 @@ const { authenticator } = require('otplib');
 const qrcode = require('qrcode');
 const jwt = require('jsonwebtoken');
 const UserSecret = require('../models/UserSecret'); // Use Mongoose Model
+const Admin = require('../models/Admin');
 
 // 1. Setup MFA
 exports.setupMFA = async (req, res) => {
@@ -36,14 +37,22 @@ exports.verifyAndLogin = async (req, res) => {
     try {
         const { email, token } = req.body;
 
-        const user = await UserSecret.findOne({ email });
-        if (!user) return res.status(404).json({ error: "User not set up" });
+        const userSecret = await UserSecret.findOne({ email });
+        if (!userSecret) return res.status(404).json({ error: "User not set up" });
 
-        const isValid = authenticator.check(token, user.secret);
+        const isValid = authenticator.check(token, userSecret.secret);
 
         if (isValid) {
             const jwtToken = jwt.sign({ email }, process.env.JWT_SECRET, { expiresIn: '12h' });
-            res.json({ success: true, token: jwtToken });
+
+            // Fetch admin details to return to frontend
+            const admin = await Admin.findOne({ email }).select('-password');
+
+            res.json({
+                success: true,
+                token: jwtToken,
+                user: admin || { email } // Fallback if admin doc is missing but valid secret exists
+            });
         } else {
             res.status(401).json({ error: "Invalid 6-digit code" });
         }

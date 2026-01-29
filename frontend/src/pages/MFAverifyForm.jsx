@@ -40,7 +40,11 @@ export default function MFAverifyForm() {
             const data = await res.json();
             if (res.ok) {
                 setSuccess("MFA verification successful! You are now logged in.");
-                login(data); // Call login from AuthContext to set user and token
+                // Backend returns { success, token, user: { ... } }
+                // We want to store a flattened object with token and user details
+                const { token, user } = data;
+                login({ ...user, token });
+
                 setTimeout(() => {
                     navigate("/home");
                 }, 1000);

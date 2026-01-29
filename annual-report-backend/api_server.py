@@ -7,6 +7,9 @@ from flask import Flask, jsonify, request, send_file
 from flask_cors import CORS
 import os
 import sys
+import requests
+import json
+from datetime import datetime
 from pathlib import Path
 import logging
 import fitz  # PyMuPDF
@@ -53,6 +56,21 @@ CORS(app)  # Enable CORS for frontend
 
 # Configuration
 RAW_DATA_PATH = Path(__file__).parent / "data" / "raw"
+DATA_API_URL = "http://localhost:5001/api/data"
+
+def save_to_db(payload):
+    """
+    Helper function to save extracted data to the Node.js backend.
+    """
+    try:
+        logger.info(f"Sending data to DB: {payload.get('company')} - {payload.get('type')}")
+        response = requests.post(DATA_API_URL, json=payload, headers={'Content-Type': 'application/json'})
+        response.raise_for_status()
+        logger.info("Successfully updated database.")
+        return True
+    except Exception as e:
+        logger.error(f"Failed to save to DB: {str(e)}")
+        return False
 PROCESSED_DATA_PATH = Path(__file__).parent / "data" / "processed" / "statement_jsons"
 IMAGES_PATH = Path(__file__).parent / "app" / "statement_images"
 
@@ -556,6 +574,9 @@ def extract_statements(pdf_id):
             else:
                 logger.warning(f"No images found for {key} statement")
         
+        # Database save removed from here - moved to extract_data_from_pages
+        # to ensure we save actual extracted data, not just image placeholders
+
         response = {
             "pdf": pdf_info,
             "statements": statements,
@@ -678,6 +699,32 @@ def extract_data_from_pages(pdf_id):
             pdf_id, 
             original_filename=pdf_info["name"] if pdf_info else None
         )
+        
+        # Save to Database (Moved from extract_statements)
+        try:
+            filename = pdf_info["name"] if pdf_info else f"Unknown_{pdf_id}_2024.pdf"
+            parts = Path(filename).stem.split('_')
+            if len(parts) >= 3:
+                sector = parts[0]
+                company = "_".join(parts[1:-1])
+                year = parts[-1]
+            else:
+                sector = "Uncategorized"
+                company = "Unknown"
+                year = "Unknown"
+
+            # Use the structured data from lines 715
+            db_payload = {
+                "sector": sector,
+                "company": company,
+                "year": year,
+                "type": "financial_statements",
+                "data": extracted_data['statements'], # This contains the actual extracted keys/values
+                "pdfId": pdf_id
+            }
+            save_to_db(db_payload)
+        except Exception as e:
+            logger.error(f"Error preparing DB payload during extraction: {e}")
         
         # Count total items extracted
         total_items = 0
@@ -863,6 +910,7 @@ def extract_investor_relations_table(pdf_id):
             return jsonify({'error': 'PDF not found'}), 404
         
         pdf_path = pdf_data['path']
+        original_filename = pdf_data.get('name')
         
         # Extract table data
         logger.info(f"Extracting investor relations data from page {page_num}")
@@ -872,25 +920,63 @@ def extract_investor_relations_table(pdf_id):
             bbox=bbox
         )
         
-        # Save to JSON
+        # Default Output Configuration
         output_dir = PROCESSED_DATA_PATH.parent / 'investor_relations'
         output_dir.mkdir(exist_ok=True)
-        
         timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-        output_file = output_dir / f"{pdf_id}_investor_relations_{timestamp}.json"
+        filename = f"{pdf_id}_investor_relations_{timestamp}.json"
+
+        # Structured Output Configuration (if filename matches Sector_Company_Year format)
+        if original_filename:
+            try:
+                # Expected: Sector_Company_Year.pdf
+                stem = Path(original_filename).stem
+                parts = stem.split('_')
+                
+                if len(parts) >= 3:
+                    sector = parts[0]
+                    year = parts[-1]
+                    company = "_".join(parts[1:-1])
+                    
+                    # Create hierarchy: Sector/Company/Year
+                    output_dir = PROCESSED_DATA_PATH.parent / 'investor_relations' / sector / company / year
+                    output_dir.mkdir(parents=True, exist_ok=True)
+                    
+                    filename = f"{company}_investor_relations_{year}.json"
+                    logger.info(f"Using structured output: {output_dir / filename}")
+            except Exception as e:
+                logger.warning(f"Filename parsing failed for '{original_filename}': {e}. Using default path.")
+        
+        output_file = output_dir / filename
         
         with open(output_file, 'w') as f:
             json.dump(extracted_data, f, indent=2)
         
         logger.info(f"Saved investor relations data to {output_file}")
         
+        # Save to Database
+        save_to_db({
+            "sector": sector if 'sector' in locals() else 'Uncategorized',
+            "company": company if 'company' in locals() else pdf_id,
+            "year": year if 'year' in locals() else datetime.now().strftime('%Y'),
+            "type": "investor_relations",
+            "data": extracted_data,
+            "pdfId": pdf_id
+        })
+
         response_data = {
             'pdf_id': pdf_id,
             'page_num': page_num,
             'data': extracted_data,
             'saved_to': str(output_file),
             'success': True,
-            'timestamp': datetime.now().isoformat()
+            'timestamp': datetime.now().isoformat(),
+            # Metadata for connecting to Node Backend
+            'metadata': {
+                'sector': sector if 'sector' in locals() else 'Uncategorized',
+                'company': company if 'company' in locals() else pdf_id,
+                'year': year if 'year' in locals() else datetime.now().strftime('%Y')
+            }
         }
         
         return jsonify(response_data)
@@ -1229,6 +1315,16 @@ def extract_subsidiary_chart_endpoint(pdf_id):
         with open(output_file, 'w') as f:
             json.dump(chart_data, f, indent=2)
             
+        # Save to Database
+        save_to_db({
+            "sector": sector,
+            "company": company,
+            "year": year,
+            "type": "subsidiary_chart",
+            "data": chart_data,
+            "pdfId": pdf_id
+        })
+
         return jsonify({
             'success': True,
             'data': chart_data,

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { dataService } from '../services/dataService';
+import { pdfService } from '../services/api'; // Import pdfService
 import {
     FolderIcon,
     DocumentTextIcon,
@@ -18,6 +19,8 @@ const DataExplorer = () => {
     const [expandedYears, setExpandedYears] = useState({});
     const [selectedFile, setSelectedFile] = useState(null);
     const [viewMode, setViewMode] = useState('list'); // 'list' or 'detail'
+    const [isEditing, setIsEditing] = useState(false);
+    const [editContent, setEditContent] = useState('');
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -57,6 +60,47 @@ const DataExplorer = () => {
             console.error("Failed to load file", error);
         }
     };
+
+    const handleEdit = () => {
+        if (selectedFile && selectedFile.data) {
+            setEditContent(JSON.stringify(selectedFile.data, null, 2));
+            setIsEditing(true);
+        }
+    };
+
+    const handleSave = async () => {
+        try {
+            const parsedData = JSON.parse(editContent);
+            console.log("Saving data for:", selectedFile.pdfId || selectedFile._id); // Try pdfId first
+
+            // Use pdfService to update Backend (Local File) + DB
+            // Note: selectedFile.pdfId should be available from the DB record
+            if (!selectedFile.pdfId) {
+                alert("Cannot update: Missing PDF ID in record");
+                return;
+            }
+
+            await pdfService.updateExtractedData(selectedFile.pdfId, {
+                statements: parsedData
+            });
+
+            alert("Data updated successfully!");
+            setIsEditing(false);
+
+            // Refresh the current view
+            await handleFileClick(selectedFile._id);
+
+        } catch (error) {
+            console.error("Update failed", error);
+            alert("Failed to update data. Check console for details.");
+        }
+    };
+
+    const handleCancel = () => {
+        setIsEditing(false);
+        setEditContent('');
+    };
+
 
     const handleDelete = async (id) => {
         if (window.confirm("Are you sure you want to delete this record?")) {
@@ -163,6 +207,30 @@ const DataExplorer = () => {
                                 <TrashIcon className="w-4 h-4" />
                                 <span>Delete</span>
                             </button>
+                            {!isEditing ? (
+                                <button
+                                    onClick={handleEdit}
+                                    className="flex items-center space-x-1 px-3 py-2 bg-blue-50 text-blue-600 rounded hover:bg-blue-100"
+                                >
+                                    <PencilSquareIcon className="w-4 h-4" />
+                                    <span>Edit</span>
+                                </button>
+                            ) : (
+                                <>
+                                    <button
+                                        onClick={handleSave}
+                                        className="px-3 py-2 bg-green-500 text-white rounded hover:bg-green-600"
+                                    >
+                                        Save
+                                    </button>
+                                    <button
+                                        onClick={handleCancel}
+                                        className="px-3 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400"
+                                    >
+                                        Cancel
+                                    </button>
+                                </>
+                            )}
                             <button
                                 onClick={() => setViewMode('list')} // On mobile go back
                                 className="md:hidden px-3 py-2 bg-gray-200 rounded"
@@ -174,7 +242,15 @@ const DataExplorer = () => {
 
                     <div className="bg-white shadow rounded-lg p-6">
                         <pre className="whitespace-pre-wrap text-sm text-gray-700 overflow-x-auto">
-                            {JSON.stringify(selectedFile.data, null, 2)}
+                            {isEditing ? (
+                                <textarea
+                                    className="w-full h-screen p-2 border rounded font-mono text-sm"
+                                    value={editContent}
+                                    onChange={(e) => setEditContent(e.target.value)}
+                                />
+                            ) : (
+                                JSON.stringify(selectedFile.data, null, 2)
+                            )}
                         </pre>
                     </div>
                 </div>

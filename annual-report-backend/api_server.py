@@ -764,8 +764,106 @@ def extract_data_from_pages(pdf_id):
             "success": False
         }), 500
         
+
+@app.route('/api/pdfs/<pdf_id>/data', methods=['PUT'])
+def update_extracted_data(pdf_id):
+    """
+    Update extracted data for a PDF.
+    Updates the local JSON file and the database.
+    
+    Request body:
+    {
+        "statements": { ... new data ... }
+    }
+    """
+    try:
+        data = request.get_json()
+        new_statements = data.get('statements', {})
+        
+        if not new_statements:
+            return jsonify({"error": "No statements data provided"}), 400
+            
+        logger.info(f"Update data request for PDF: {pdf_id}")
+        
+        # 1. Find the existing JSON file
+        # We search in PROCESSED_DATA_PATH recursively because files are structured in folders
+        json_file_path = None
+        for path in PROCESSED_DATA_PATH.rglob(f"{pdf_id}.json"):
+            json_file_path = path
+            break
+            
+        if not json_file_path:
+            return jsonify({"error": f"Original data file not found for {pdf_id}"}), 404
+            
+        logger.info(f"Found existing data file: {json_file_path}")
+        
+        # 2. Update the local file
+        # Read existing to preserve other fields (like extraction_date, pdf_id)
+        try:
+            with open(json_file_path, 'r', encoding='utf-8') as f:
+                existing_data = json.load(f)
+        except Exception as e:
+            logger.error(f"Error reading existing file: {e}")
+            return jsonify({"error": "Failed to read existing data file"}), 500
+            
+        # Update statements
+        existing_data['statements'] = new_statements
+        
+        # Write back to file
+        with open(json_file_path, 'w', encoding='utf-8') as f:
+            json.dump(existing_data, f, indent=2, ensure_ascii=False)
+            
+        logger.info(f"Updated local JSON file: {json_file_path}")
+        
+        # 3. Update the Database
+        try:
+            # Reconstruct payload logic
+            # Path structure: .../PROCESSED_DATA_PATH / Sector / Company / Year / filename.json
+            relative_parts = json_file_path.relative_to(PROCESSED_DATA_PATH).parts
+            
+            sector = "Uncategorized"
+            company = "Unknown"
+            year = "Unknown"
+            
+            if len(relative_parts) >= 4: # Sector, Company, Year, Filename
+                sector = relative_parts[0]
+                company = relative_parts[1]
+                year = relative_parts[2]
+            else:
+                 # Fallback: Parse from filename if possible
+                 stem = json_file_path.stem
+                 parts = stem.split('_')
+                 if len(parts) >= 3:
+                    sector = parts[0]
+                    company = "_".join(parts[1:-1])
+                    year = parts[-1]
+
+            db_payload = {
+                "sector": sector,
+                "company": company,
+                "year": year,
+                "type": "financial_statements",
+                "data": new_statements,
+                "pdfId": pdf_id
+            }
+            
+            save_success = save_to_db(db_payload)
+            
+            if not save_success:
+                 logger.warning("Failed to update database via backend API")
+                 
+        except Exception as e:
+            logger.error(f"Error preparing DB update payload: {e}")
+            
+        return jsonify({
+            "success": True,
+            "message": "Data updated successfully",
+            "file_updated": True,
+            "db_update_initiated": True
+        }), 200
+
     except Exception as e:
-        logger.error(f"Error extracting data: {str(e)}", exc_info=True)
+        logger.error(f"Error updating data: {str(e)}", exc_info=True)
         return jsonify({
             "error": str(e),
             "success": False

@@ -200,6 +200,17 @@ export const pdfService = {
       throw error;
     }
   },
+
+  // Update extracted data (File + DB)
+  updateExtractedData: async (pdfId, data) => {
+    try {
+      const response = await api.put(`/pdfs/${pdfId}/data`, data);
+      return response.data;
+    } catch (error) {
+      console.error('Error updating extracted data:', error);
+      throw error;
+    }
+  },
 };
 
 export default api;

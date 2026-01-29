@@ -1,0 +1,40 @@
+services:
+  # Python Backend (Annual Report Extractor)
+  annual-report-backend:
+    build:
+      context: ./annual-report-backend
+      dockerfile: Dockerfile
+    container_name: annual-report-backend
+    ports:
+      - "5000:5000"
+    env_file:
+      - ./annual-report-backend/.env
+    environment:
+      - DATA_API_URL=http://backend-node:5001/api/data
+    restart: unless-stopped
+
+  # Node.js Backend
+  backend-node:
+    build:
+      context: ./Backend
+      dockerfile: Dockerfile
+    container_name: backend-node
+    ports:
+      - "5001:5001"
+    env_file:
+      - ./Backend/.env
+    restart: unless-stopped
+
+  # Frontend (Vite/React)
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: frontend
+    ports:
+      # Mapping host port 3000 to container port 80 (nginx)
+      - "3000:80"
+    depends_on:
+      - annual-report-backend
+      - backend-node
+    restart: unless-stopped

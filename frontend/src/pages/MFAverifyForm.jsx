@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import { API_ENDPOINTS } from "../api/endpoints";
 import { validateEmail, validateToken } from "../utils/validation";
+import { useAuth } from "../utils/AuthContext";
+import { useNavigate } from "react-router-dom";
 
 export default function MFAverifyForm() {
     const params = new URLSearchParams(window.location.search);
@@ -9,6 +11,11 @@ export default function MFAverifyForm() {
     const [error, setError] = useState("");
     const [success, setSuccess] = useState("");
     const [loading, setLoading] = useState(false);
+
+
+    //handle user data passing logic
+    const { login } = useAuth();
+    const navigate = useNavigate();
 
     const handleVerify = async (e) => {
         e.preventDefault();
@@ -33,16 +40,19 @@ export default function MFAverifyForm() {
             const data = await res.json();
             if (res.ok) {
                 setSuccess("MFA verification successful! You are now logged in.");
-                if (data.token) {
-                    localStorage.setItem("token", data.token);
-                }
+                // Backend returns { success, token, user: { ... } }
+                // We want to store a flattened object with token and user details
+                const { token, user } = data;
+                login({ ...user, token });
+
                 setTimeout(() => {
-                    window.location.href = "/home";
+                    navigate("/home");
                 }, 1000);
             } else {
                 setError(data.message || "MFA verification failed");
             }
-        } catch {
+        } catch (err) {
+            console.error(err);
             setError("Network error");
         }
         setLoading(false);

@@ -1,0 +1,473 @@
+{
+  "pdf_id": "jhonkeels_Financial_JhonKeels_2024",
+  "extraction_date": "2026-01-18T19:07:53.616220",
+  "statements": {
+    "balance": {
+      "page_303": {
+        "raw_text_lines": 265,
+        "parsed_items": 36,
+        "data": {
+          "COMPANY As at 31 March": {
+            "2025 (Entity1)": "2025",
+            "2024 (Entity1)": "2024",
+            "2025 (Entity2)": "2025",
+            "2024 (Entity2)": "2024"
+          },
+          "ASSETS Non-current assets Property, plant and equipment": {
+            "2025 (Entity1)": "419,297,617",
+            "2024 (Entity1)": "382,988,534",
+            "2025 (Entity2)": "96,878",
+            "2024 (Entity2)": "117,585"
+          },
+          "Right- of - use assets": {
+            "2025 (Entity1)": "49,279,684",
+            "2024 (Entity1)": "48,692,617",
+            "2025 (Entity2)": "106,839",
+            "2024 (Entity2)": "122,286"
+          },
+          "Investment properties": {
+            "2025 (Entity1)": "31,382,118",
+            "2024 (Entity1)": "31,518,824"
+          },
+          "Intangible assets": {
+            "2025 (Entity1)": "15,845,337",
+            "2024 (Entity1)": "6,329,125",
+            "2025 (Entity2)": "2,776,647",
+            "2024 (Entity2)": "34,778"
+          },
+          "Investments in subsidiaries": {
+            "2025 (Entity1)": "245,371,532",
+            "2024 (Entity1)": "217,905,867"
+          },
+          "Investments in equity accounted investees": {
+            "2025 (Entity1)": "61,755,491",
+            "2024 (Entity1)": "48,151,204",
+            "2025 (Entity2)": "28,821,438",
+            "2024 (Entity2)": "21,541,092"
+          },
+          "Non-current financial assets": {
+            "2025 (Entity1)": "76,584,128",
+            "2024 (Entity1)": "74,481,816",
+            "2025 (Entity2)": "2,383,102",
+            "2024 (Entity2)": "3,511,692"
+          },
+          "Deferred tax assets": {
+            "2025 (Entity1)": "21.4",
+            "2024 (Entity1)": "1,476,180",
+            "2025 (Entity2)": "1,716,261"
+          },
+          "Other non-current assets": {
+            "2025 (Entity1)": "2,985,268",
+            "2024 (Entity1)": "3,202,936",
+            "2025 (Entity2)": "106,285",
+            "2024 (Entity2)": "95,240"
+          },
+          "Current assets Inventories": {
+            "2025 (Entity1)": "38,710,499",
+            "2024 (Entity1)": "39,305,503"
+          },
+          "Trade and other receivables": {
+            "2025 (Entity1)": "31,807,731",
+            "2024 (Entity1)": "28,377,205",
+            "2025 (Entity2)": "711,855",
+            "2024 (Entity2)": "460,682"
+          },
+          "Amounts due from related parties": {
+            "2025 (Entity1)": "44.1",
+            "2024 (Entity1)": "580,135",
+            "2025 (Entity2)": "674,179",
+            "2024 (Entity2)": "840,848"
+          },
+          "Other current assets": {
+            "2025 (Entity1)": "10,656,409",
+            "2024 (Entity1)": "10,304,760",
+            "2025 (Entity2)": "736,562",
+            "2024 (Entity2)": "3,144,607"
+          },
+          "Short term investments": {
+            "2025 (Entity1)": "90,411,476",
+            "2024 (Entity1)": "80,030,642",
+            "2025 (Entity2)": "61,799,205",
+            "2024 (Entity2)": "57,805,464"
+          },
+          "Cash in hand and at bank": {
+            "2025 (Entity1)": "15,146,008",
+            "2024 (Entity1)": "15,417,894",
+            "2025 (Entity2)": "495,140",
+            "2024 (Entity2)": "556,930"
+          },
+          "Total assets": {
+            "2025 (Entity1)": "845,918,081",
+            "2024 (Entity1)": "771,191,500",
+            "2025 (Entity2)": "344,246,331",
+            "2024 (Entity2)": "306,587,069"
+          },
+          "EQUITY AND LIABILITIES Equity attributable to equity holders of the parent Stated capital": {
+            "2025 (Entity1)": "34.1",
+            "2024 (Entity1)": "132,511,513",
+            "2025 (Entity2)": "90,602,453",
+            "2024 (Entity2)": "132,511,513"
+          },
+          "Revenue reserves": {
+            "2025 (Entity1)": "134,040,852",
+            "2024 (Entity1)": "130,812,080",
+            "2025 (Entity2)": "105,005,639",
+            "2024 (Entity2)": "103,933,190"
+          },
+          "Other components of equity": {
+            "2025 (Entity1)": "34.2",
+            "2024 (Entity1)": "132,526,062",
+            "2025 (Entity2)": "136,452,778",
+            "2024 (Entity2)": "5,631,139"
+          },
+          "Non-controlling interest": {
+            "2025 (Entity1)": "19,724,281",
+            "2024 (Entity1)": "19,609,383"
+          },
+          "Total equity": {
+            "2025 (Entity1)": "418,802,708",
+            "2024 (Entity1)": "377,476,694",
+            "2025 (Entity2)": "243,148,291",
+            "2024 (Entity2)": "206,340,431"
+          },
+          "Non-current liabilities Insurance contract liabilities": {
+            "2025 (Entity1)": "82,555,004",
+            "2024 (Entity1)": "69,510,867"
+          },
+          "Interest-bearing loans and borrowings": {
+            "2025 (Entity1)": "26,673,221",
+            "2024 (Entity1)": "23,216,942",
+            "2025 (Entity2)": "14,514,447",
+            "2024 (Entity2)": "7,670,053"
+          },
+          "Lease liabilities": {
+            "2025 (Entity1)": "2,632,051",
+            "2024 (Entity1)": "3,884,003",
+            "2025 (Entity2)": "8,038",
+            "2024 (Entity2)": "6,961"
+          },
+          "Deferred tax liabilities": {
+            "2025 (Entity1)": "21.4",
+            "2024 (Entity1)": "23,204,978",
+            "2025 (Entity2)": "21,222,258",
+            "2024 (Entity2)": "2,988,277"
+          },
+          "Employee benefit liabilities": {
+            "2025 (Entity1)": "3,463,465",
+            "2024 (Entity1)": "3,590,783",
+            "2025 (Entity2)": "330,819",
+            "2024 (Entity2)": "326,926"
+          },
+          "Non-current financial liabilities": {
+            "2025 (Entity1)": "11,387,177",
+            "2024 (Entity1)": "10,201,449"
+          },
+          "Other non-current liabilities": {
+            "2025 (Entity1)": "720,699",
+            "2024 (Entity1)": "615,445",
+            "2025 (Entity2)": "274,463,865",
+            "2024 (Entity2)": "261,576,603"
+          },
+          "Current liabilities Trade and other payables": {
+            "2025 (Entity1)": "66,727,203",
+            "2024 (Entity1)": "42,582,596",
+            "2025 (Entity2)": "538,055",
+            "2024 (Entity2)": "1,463,935"
+          },
+          "Amounts due to related parties": {
+            "2025 (Entity1)": "44.2",
+            "2024 (Entity1)": "541,657",
+            "2025 (Entity2)": "448,743",
+            "2024 (Entity2)": "96,333"
+          },
+          "Income tax liabilities": {
+            "2025 (Entity1)": "21.3",
+            "2024 (Entity1)": "1,976,863",
+            "2025 (Entity2)": "1,824,765",
+            "2024 (Entity2)": "258,214"
+          },
+          "Short term borrowings": {
+            "2025 (Entity1)": "15,518,937",
+            "2024 (Entity1)": "21,062,456",
+            "2025 (Entity2)": "4,100,000",
+            "2024 (Entity2)": "13,909,261"
+          },
+          "Other current liabilities": {
+            "2025 (Entity1)": "7,482,902",
+            "2024 (Entity1)": "6,668,511",
+            "2025 (Entity2)": "22,709",
+            "2024 (Entity2)": "21,441"
+          },
+          "Bank overdrafts": {
+            "2025 (Entity1)": "31,098,674",
+            "2024 (Entity1)": "32,450,187",
+            "2025 (Entity2)": "5,213,163",
+            "2024 (Entity2)": "8,303,941"
+          },
+          "Total equity and liabilities": {
+            "2025 (Entity1)": "845,918,081",
+            "2024 (Entity1)": "771,191,500",
+            "2025 (Entity2)": "344,246,331",
+            "2024 (Entity2)": "306,587,069"
+          }
+        },
+        "full_text": "301\nNavigating Our Value Creation Journey     Group Highlights   |   Management Discussion and Analysis   |    Governance    Financial Statements     Supplementary Information\nSTATEMENT OF FINANCIAL POSITION\nGROUP\nCOMPANY\nAs at 31 March\n2025\n2024\n2025\n2024\nIn Rs.'000s\nNote\nASSETS\nNon-current assets\nProperty, plant and equipment\n22\n419,297,617\n382,988,534\n96,878\n117,585\nRight- of - use assets\n23\n49,279,684\n48,692,617\n106,839\n122,286\nInvestment properties\n24\n31,382,118\n31,518,824\n-\n-\nIntangible assets\n25\n15,845,337\n6,329,125\n2,776,647\n34,778\nInvestments in subsidiaries\n26\n-\n-\n245,371,532\n217,905,867\nInvestments in equity accounted investees\n27\n61,755,491\n48,151,204\n28,821,438\n21,541,092\nNon-current financial assets\n28\n76,584,128\n74,481,816\n2,383,102\n3,511,692\nDeferred tax assets\n21.4\n1,476,180\n1,716,261\n-\n-\nOther non-current assets\n29\n2,985,268\n3,202,936\n106,285\n95,240\n658,605,823\n597,081,317\n279,662,721\n243,328,540\nCurrent assets\nInventories\n30\n38,710,499\n39,305,503\n-\n-\nTrade and other receivables\n31\n31,807,731\n28,377,205\n711,855\n460,682\nAmounts due from related parties\n44.1\n580,135\n674,179\n840,848\n1,290,846\nOther current assets\n32\n10,656,409\n10,304,760\n736,562\n3,144,607\nShort term investments\n33\n90,411,476\n80,030,642\n61,799,205\n57,805,464\nCash in hand and at bank\n15,146,008\n15,417,894\n495,140\n556,930\n187,312,258\n174,110,183\n64,583,610\n63,258,529\nTotal assets\n845,918,081\n771,191,500\n344,246,331\n306,587,069\nEQUITY AND LIABILITIES\nEquity attributable to equity holders of the parent\nStated capital\n34.1\n132,511,513\n90,602,453\n132,511,513\n90,602,453\nRevenue reserves\n134,040,852\n130,812,080\n105,005,639\n103,933,190\nOther components of equity\n34.2\n132,526,062\n136,452,778\n5,631,139\n11,804,788\n399,078,427\n357,867,311\n243,148,291\n206,340,431\nNon-controlling interest\n19,724,281\n19,609,383\n-\n-\nTotal equity\n418,802,708\n377,476,694\n243,148,291\n206,340,431\nNon-current liabilities\nInsurance contract liabilities\n36\n82,555,004\n69,510,867\n-\n-\nInterest-bearing loans and borrowings\n37\n137,120,024\n127,169,502\n72,926,884\n55,044,493\nLease liabilities\n23\n27,399,695\n28,080,571\n101,101\n109,139\nDeferred tax liabilities\n21.4\n23,204,978\n21,222,258\n2,988,277\n2,841,984\nEmployee benefit liabilities\n38\n3,463,465\n3,590,783\n330,819\n326,926\nNon-current financial liabilities\n39\n-\n11,387,177\n-\n10,201,449\nOther non-current liabilities\n40\n720,699\n615,445\n-\n-\n274,463,865\n261,576,603\n76,347,081\n68,523,991\nCurrent liabilities\nTrade and other payables\n41\n66,727,203\n42,582,596\n538,055\n1,463,935\nAmounts due to related parties\n44.2\n541,657\n448,743\n96,333\n88,841\nIncome tax liabilities\n21.3\n1,976,863\n1,824,765\n258,214\n258,214\nShort term borrowings\n42\n15,518,937\n21,062,456\n4,100,000\n13,909,261\nInterest-bearing loans and borrowings\n37\n26,673,221\n23,216,942\n14,514,447\n7,670,053\nLease liabilities\n23\n2,632,051\n3,884,003\n8,038\n6,961\nOther current liabilities\n43\n7,482,902\n6,668,511\n22,709\n21,441\nBank overdrafts\n31,098,674\n32,450,187\n5,213,163\n8,303,941\n152,651,508\n132,138,203\n24,750,959\n31,722,647\nTotal equity and liabilities\n845,918,081\n771,191,500\n344,246,331\n306,587,069\nI certify that the financial statements comply with the requirements of the Companies Act No. 7 of 2007.\nK M Thanthirige\nGroup Financial Controller\nThe Board of Directors is responsible for these financial statements.\nK N J Balendra\nJ G A Cooray\nChairperson\nDeputy Chairperson/Group Finance Director\nThe accounting policies and Notes as set out in pages 306 to 396 form an integral part of these financial statements.\n27 May 2025\nColombo"
+      }
+    },
+    "cashflow": {
+      "page_304": {
+        "raw_text_lines": 250,
+        "parsed_items": 46,
+        "data": {
+          "COMPANY For the year ended 31 March": {
+            "2025 (Entity1)": "2025",
+            "2024 (Entity1)": "2024",
+            "2025 (Entity2)": "2025",
+            "2024 (Entity2)": "2024"
+          },
+          "OPERATING ACTIVITIES Profit / (loss) before working capital changes": {
+            "2025 (Entity1)": "15,733,252",
+            "2024 (Entity1)": "17,716,574",
+            "2025 (Entity2)": "(1,122,570)",
+            "2024 (Entity2)": "(826,092)"
+          },
+          "(Increase) / Decrease in inventories": {
+            "2025 (Entity1)": "782,666",
+            "2024 (Entity1)": "919,195"
+          },
+          "(Increase) / Decrease in trade and other receivables": {
+            "2025 (Entity1)": "(3,546,278)",
+            "2024 (Entity1)": "(9,723,231)",
+            "2025 (Entity2)": "173,880",
+            "2024 (Entity2)": "(366,183)"
+          },
+          "(Increase) / Decrease in other current assets": {
+            "2025 (Entity1)": "(2,935,418)",
+            "2024 (Entity1)": "3,767,983",
+            "2025 (Entity2)": "(308,969)",
+            "2024 (Entity2)": "(1,470,380)"
+          },
+          "(Increase) / Decrease in non-current financial liabilities": {
+            "2025 (Entity1)": "(1,185,728)",
+            "2024 (Entity1)": "(541,150)"
+          },
+          "Increase / (Decrease) in trade and other payables and other non-current liabilities": {
+            "2025 (Entity1)": "24,506,756",
+            "2024 (Entity1)": "13,983,771",
+            "2025 (Entity2)": "(918,386)",
+            "2024 (Entity2)": "863,127"
+          },
+          "Increase / (Decrease) in other current liabilities": {
+            "2025 (Entity1)": "814,451",
+            "2024 (Entity1)": "1,478,227",
+            "2025 (Entity2)": "1,268",
+            "2024 (Entity2)": "127,932"
+          },
+          "Increase / (Decrease) in insurance contract liabilities": {
+            "2025 (Entity1)": "13,044,137",
+            "2024 (Entity1)": "10,603,557"
+          },
+          "Cash generated from operations": {
+            "2025 (Entity1)": "47,213,838",
+            "2024 (Entity1)": "38,204,926",
+            "2025 (Entity2)": "(2,174,777)",
+            "2024 (Entity2)": "(1,671,596)"
+          },
+          "Finance income received": {
+            "2025 (Entity1)": "18,117,047",
+            "2024 (Entity1)": "18,732,221",
+            "2025 (Entity2)": "4,724,038",
+            "2024 (Entity2)": "5,420,803"
+          },
+          "Finance costs paid": {
+            "2025 (Entity1)": "(21,943,058)",
+            "2024 (Entity1)": "(24,784,414)",
+            "2025 (Entity2)": "(8,665,069)",
+            "2024 (Entity2)": "(8,619,506)"
+          },
+          "Dividend received": {
+            "2025 (Entity1)": "4,196,831",
+            "2024 (Entity1)": "4,869,454",
+            "2025 (Entity2)": "10,492,614",
+            "2024 (Entity2)": "11,349,209"
+          },
+          "Tax paid": {
+            "2025 (Entity1)": "(5,717,342)",
+            "2024 (Entity1)": "(3,982,433)",
+            "2025 (Entity2)": "(6,843)",
+            "2024 (Entity2)": "(767,533)"
+          },
+          "Gratuity paid": {
+            "2025 (Entity1)": "(405,001)",
+            "2024 (Entity1)": "(288,748)",
+            "2025 (Entity2)": "(32,190)",
+            "2024 (Entity2)": "(3,627)"
+          },
+          "Net cash flows from operating activities": {
+            "2025 (Entity1)": "41,462,315",
+            "2024 (Entity1)": "32,751,006",
+            "2025 (Entity2)": "4,337,773",
+            "2024 (Entity2)": "5,707,750"
+          },
+          "INVESTING ACTIVITIES Purchase and construction of property, plant and equipment": {
+            "2025 (Entity1)": "(42,167,794)",
+            "2024 (Entity1)": "(27,943,249)",
+            "2025 (Entity2)": "(23,608)",
+            "2024 (Entity2)": "(22,713)"
+          },
+          "Purchase of intangible assets": {
+            "2025 (Entity1)": "(7,723,511)",
+            "2024 (Entity1)": "(1,004,633)",
+            "2025 (Entity2)": "(9,539)"
+          },
+          "Additions to investment properties": {
+            "2025 (Entity1)": "(22,428)",
+            "2024 (Entity1)": "(17,349)"
+          },
+          "Increase in interest in subsidiaries": {
+            "2025 (Entity1)": "(27,436,040)",
+            "2024 (Entity1)": "(19,584,830)"
+          },
+          "Additions to other non-current assets": {
+            "2025 (Entity1)": "(94,157)",
+            "2024 (Entity1)": "(335,617)"
+          },
+          "Increase in interest in equity accounted investees": {
+            "2025 (Entity1)": "(7,475,566)",
+            "2024 (Entity1)": "(5,637,340)",
+            "2025 (Entity2)": "(7,076,021)",
+            "2024 (Entity2)": "(5,169,612)"
+          },
+          "Proceeds from sale of property, plant and equipment and intangible assets": {
+            "2025 (Entity1)": "333,643",
+            "2024 (Entity1)": "379,226"
+          },
+          "Proceeds from sale of investment properties": {
+            "2025 (Entity1)": "1,249,350"
+          },
+          "Proceeds from sale of financial instruments - fair value through profit or loss": {
+            "2025 (Entity1)": "4,456,555",
+            "2024 (Entity1)": "2,549,829"
+          },
+          "Purchase of financial instruments - fair value through profit or loss": {
+            "2025 (Entity1)": "(5,574,095)",
+            "2024 (Entity1)": "(3,087,823)"
+          },
+          "(Purchase) / disposal of deposits and government securities (net)": {
+            "2025 (Entity1)": "(11,061,878)",
+            "2024 (Entity1)": "(24,767,046)",
+            "2025 (Entity2)": "(1,366,827)",
+            "2024 (Entity2)": "(18,432,770)"
+          },
+          "(Purchase) / disposal of other non-current financial assets (net)": {
+            "2025 (Entity1)": "(305,248)",
+            "2024 (Entity1)": "(217,102)",
+            "2025 (Entity2)": "8,560"
+          },
+          "Net cash flows from / (used in) investing activities": {
+            "2025 (Entity1)": "(68,385,129)",
+            "2024 (Entity1)": "(60,081,104)",
+            "2025 (Entity2)": "(35,911,136)",
+            "2024 (Entity2)": "(43,200,610)"
+          },
+          "FINANCING ACTIVITIES Proceeds from issue of shares": {
+            "2025 (Entity1)": "24,777,360",
+            "2024 (Entity1)": "527,713",
+            "2025 (Entity2)": "24,777,360",
+            "2024 (Entity2)": "527,713"
+          },
+          "Direct cost on issue of shares": {
+            "2025 (Entity1)": "(18,271)",
+            "2024 (Entity1)": "(18,271)"
+          },
+          "Changes in non-controlling interest": {
+            "2025 (Entity1)": "(97,886)",
+            "2024 (Entity1)": "(115,392)"
+          },
+          "Dividend paid to equity holders of parent": {
+            "2025 (Entity1)": "(2,457,083)",
+            "2024 (Entity1)": "(2,080,473)",
+            "2025 (Entity2)": "(2,457,083)",
+            "2024 (Entity2)": "(2,080,473)"
+          },
+          "Dividend paid to shareholders with non-controlling interest": {
+            "2025 (Entity1)": "(1,099,388)",
+            "2024 (Entity1)": "(882,399)"
+          },
+          "Proceeds from long term borrowings": {
+            "2025 (Entity1)": "37.1",
+            "2024 (Entity1)": "36,031,878",
+            "2025 (Entity2)": "2,106,129",
+            "2024 (Entity2)": "31,800,000"
+          },
+          "Repayment of long term borrowings": {
+            "2025 (Entity1)": "37.1",
+            "2024 (Entity1)": "(20,424,540)",
+            "2025 (Entity2)": "(12,009,810)",
+            "2024 (Entity2)": "(6,320,800)"
+          },
+          "Payment of principal portion of lease liabilities": {
+            "2025 (Entity1)": "(2,661,024)",
+            "2024 (Entity1)": "(2,489,114)",
+            "2025 (Entity2)": "(6,961)"
+          },
+          "Proceeds from / (repayment of) short term borrowings (net)": {
+            "2025 (Entity1)": "(5,563,221)",
+            "2024 (Entity1)": "11,903,072",
+            "2025 (Entity2)": "(9,809,261)",
+            "2024 (Entity2)": "12,609,261"
+          },
+          "Net cash flows from / (used in) financing activities": {
+            "2025 (Entity1)": "28,487,825",
+            "2024 (Entity1)": "(3,040,274)",
+            "2025 (Entity2)": "37,964,984",
+            "2024 (Entity2)": "8,543,459"
+          },
+          "NET INCREASE / (DECREASE) IN CASH AND CASH EQUIVALENTS": {
+            "2025 (Entity1)": "1,565,011",
+            "2024 (Entity1)": "(30,370,372)",
+            "2025 (Entity2)": "6,391,621",
+            "2024 (Entity2)": "(28,949,401)"
+          },
+          "CASH AND CASH EQUIVALENTS AT THE BEGINNING": {
+            "2025 (Entity1)": "9,939,646",
+            "2024 (Entity1)": "40,310,018",
+            "2025 (Entity2)": "9,057,645",
+            "2024 (Entity2)": "38,007,046"
+          },
+          "CASH AND CASH EQUIVALENTS AT THE END": {
+            "2025 (Entity1)": "11,504,657",
+            "2024 (Entity1)": "9,939,646",
+            "2025 (Entity2)": "15,449,266",
+            "2024 (Entity2)": "9,057,645"
+          },
+          "ANALYSIS OF CASH AND CASH EQUIVALENTS Favourable balances Short term investments (less than 3 months)": {
+            "2025 (Entity1)": "27,457,323",
+            "2024 (Entity1)": "26,971,939",
+            "2025 (Entity2)": "20,167,289",
+            "2024 (Entity2)": "16,804,656"
+          },
+          "Cash in hand and at bank": {
+            "2025 (Entity1)": "15,146,008",
+            "2024 (Entity1)": "15,417,894",
+            "2025 (Entity2)": "495,140",
+            "2024 (Entity2)": "556,930"
+          },
+          "Unfavourable balances Bank overdrafts": {
+            "2025 (Entity1)": "(31,098,674)",
+            "2024 (Entity1)": "(32,450,187)",
+            "2025 (Entity2)": "(5,213,163)",
+            "2024 (Entity2)": "(8,303,941)"
+          },
+          "Total cash and cash equivalents": {
+            "2025 (Entity1)": "11,504,657",
+            "2024 (Entity1)": "9,939,646",
+            "2025 (Entity2)": "15,449,266",
+            "2024 (Entity2)": "9,057,645"
+          }
+        },
+        "full_text": "302\nJohn Keells Holdings PLC Annual Report 2024/25\nSTATEMENT OF CASH FLOWS\nGROUP\nCOMPANY\nFor the year ended 31 March\n2025\n2024\n2025\n2024\nIn Rs.'000s\nNote\nOPERATING ACTIVITIES\nProfit / (loss) before working capital changes\nA\n15,733,252\n17,716,574\n(1,122,570)\n(826,092)\n(Increase) / Decrease in inventories\n782,666\n919,195\n-\n-\n(Increase) / Decrease in trade and other receivables\n(3,546,278)\n(9,723,231)\n173,880\n(366,183)\n(Increase) / Decrease in other current assets\n(2,935,418)\n3,767,983\n(308,969)\n(1,470,380)\n(Increase) / Decrease in non-current financial liabilities\n(1,185,728)\n(541,150)\n-\n-\nIncrease / (Decrease) in trade and other payables and other non-current liabilities\n24,506,756\n13,983,771\n(918,386)\n863,127\nIncrease / (Decrease) in other current liabilities\n814,451\n1,478,227\n1,268\n127,932\nIncrease / (Decrease) in insurance contract liabilities\n13,044,137\n10,603,557\n-\n-\nCash generated from operations\n47,213,838\n38,204,926\n(2,174,777)\n(1,671,596)\nFinance income received\n18,117,047\n18,732,221\n4,724,038\n5,420,803\nFinance costs paid\n(21,943,058)\n(24,784,414)\n(8,665,069)\n(8,619,506)\nDividend received\n4,196,831\n4,869,454\n10,492,614\n11,349,209\nTax paid\n(5,717,342)\n(3,982,433)\n(6,843)\n(767,533)\nGratuity paid\n(405,001)\n(288,748)\n(32,190)\n(3,627)\nNet cash flows from operating activities\n41,462,315\n32,751,006\n4,337,773\n5,707,750\nINVESTING ACTIVITIES\nPurchase and construction of property, plant and equipment\n(42,167,794)\n(27,943,249)\n(23,608)\n(22,713)\nPurchase of intangible assets\n(7,723,511)\n(1,004,633)\n(9,539)\n-\nAdditions to investment properties\n24\n(22,428)\n(17,349)\n-\n-\nIncrease in interest in subsidiaries\n-\n-\n(27,436,040)\n(19,584,830)\nAdditions to other non-current assets\n(94,157)\n(335,617)\n-\n-\nIncrease in interest in equity accounted investees\n(7,475,566)\n(5,637,340)\n(7,076,021)\n(5,169,612)\nProceeds from sale of property, plant and equipment and intangible assets\n333,643\n379,226\n899\n755\nProceeds from sale of investment properties\n1,249,350\n-\n-\n-\nProceeds from sale of financial instruments - fair value through profit or loss\n4,456,555\n2,549,829\n-\n-\nPurchase of financial instruments - fair value through profit or loss\n(5,574,095)\n(3,087,823)\n-\n-\n(Purchase) / disposal of deposits and government securities (net)\n(11,061,878)\n(24,767,046)\n(1,366,827)\n(18,432,770)\n(Purchase) / disposal of other non-current financial assets (net)\n(305,248)\n(217,102)\n-\n8,560\nNet cash flows from / (used in) investing activities\n(68,385,129)  (60,081,104)  (35,911,136)  (43,200,610)\nFINANCING ACTIVITIES\nProceeds from issue of shares\n24,777,360\n527,713\n24,777,360\n527,713\nDirect cost on issue of shares\n(18,271)\n-\n(18,271)\n-\nChanges in non-controlling interest\n(97,886)\n(115,392)\n-\n-\nDividend paid to equity holders of parent\n(2,457,083)\n(2,080,473)\n(2,457,083)\n(2,080,473)\nDividend paid to shareholders with non-controlling interest\n(1,099,388)\n(882,399)\n-\n-\nProceeds from long term borrowings\n37.1\n36,031,878\n2,106,129\n31,800,000\n-\nRepayment of long term borrowings\n37.1\n(20,424,540)\n(12,009,810)\n(6,320,800)\n(2,512,500)\nPayment of principal portion of lease liabilities\n(2,661,024)\n(2,489,114)\n(6,961)\n(542)\nProceeds from / (repayment of) short term borrowings (net)\n(5,563,221)\n11,903,072\n(9,809,261)\n12,609,261\nNet cash flows from / (used in) financing activities\n28,487,825\n(3,040,274)\n37,964,984\n8,543,459\nNET INCREASE / (DECREASE) IN CASH AND CASH EQUIVALENTS\n1,565,011\n(30,370,372)\n6,391,621\n(28,949,401)\nCASH AND CASH EQUIVALENTS AT THE BEGINNING\n9,939,646\n40,310,018\n9,057,645\n38,007,046\nCASH AND CASH EQUIVALENTS AT THE END\n11,504,657\n9,939,646\n15,449,266\n9,057,645\nANALYSIS OF CASH AND CASH EQUIVALENTS\nFavourable balances\nShort term investments (less than 3 months)\n33\n27,457,323\n26,971,939\n20,167,289\n16,804,656\nCash in hand and at bank\n15,146,008\n15,417,894\n495,140\n556,930\nUnfavourable balances\nBank overdrafts\n(31,098,674)\n(32,450,187)\n(5,213,163)\n(8,303,941)\nTotal cash and cash equivalents\n11,504,657\n9,939,646\n15,449,266\n9,057,645\nCash and cash equivalents in the statement of financial position comprise cash at banks and in hand and short-term deposits with a maturity of three\nmonths or less. For the purpose of the cash flow statement, cash and cash equivalents consist of cash and short-term deposits as defined above, net of\noutstanding bank overdrafts.\nFigures in brackets indicate deductions.\nThe accounting policies and notes as set out in pages 306 to 396 form an integral part of these financial statements."
+      }
+    }
+  }
+}

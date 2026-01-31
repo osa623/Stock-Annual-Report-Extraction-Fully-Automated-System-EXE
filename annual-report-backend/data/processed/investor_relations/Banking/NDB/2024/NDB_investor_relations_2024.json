@@ -1,0 +1,103 @@
+{
+  "success": true,
+  "attribute_count": 23,
+  "data": {
+    "None": {
+      "Number of\nshares": "41,509,789",
+      "%": "None"
+    },
+    "Employee's Provident Fund": {
+      "Number of\nshares": "39,491,696",
+      "%": "9.50"
+    },
+    "Bank of Ceylon No. 1 Account": {
+      "Number of\nshares": "33,025,123",
+      "%": "7.95"
+    },
+    "Richard Pieris and Co Ltd - A/C No.01": {
+      "Number of\nshares": "25,779,312",
+      "%": "6.20"
+    },
+    "Sri Lanka Insurance Corporation Ltd-\nGeneral Fund": {
+      "Number of\nshares": "25,252,338",
+      "%": "6.08"
+    },
+    "Sri Lanka Insurance Corporation Ltd-\nLife Fund": {
+      "Number of\nshares": "20,994,352",
+      "%": "5.05"
+    },
+    "Softlogic Life Insurance PLC Account\nNumber 03/Life Shareholders Fund": {
+      "Number of\nshares": "20,151,741",
+      "%": "4.85"
+    },
+    "Employees Trust Fund Board": {
+      "Number of\nshares": "14,093,993",
+      "%": "3.39"
+    },
+    "BNYM Re-Terra Global Opportunity\nFund, L.P": {
+      "Number of\nshares": "13,314,258",
+      "%": "3.20"
+    },
+    "Dr. S. Yaddehige": {
+      "Number of\nshares": "11,709,518",
+      "%": "2.82"
+    },
+    "Hatton National Bank PLC A/C No 1": {
+      "Number of\nshares": "11,517,884",
+      "%": "2.77"
+    },
+    "Perpetual Treasuries Limited": {
+      "Number of\nshares": "10,165,367",
+      "%": "2.45"
+    },
+    "SBI Ven Holdings Pte Ltd": {
+      "Number of\nshares": "10,086,418",
+      "%": "2.43"
+    },
+    "Commercial Bank of Ceylon PLC/\nMetrocorp (Pvt) Ltd": {
+      "Number of\nshares": "8,836,939",
+      "%": "2.13"
+    },
+    "Softlogic Life Insurance PLC-A/C No. 05\n(Non -Participating Fund)": {
+      "Number of\nshares": "7,326,771",
+      "%": "1.76"
+    },
+    "Akbar Brothers Pvt Ltd A/C No 1": {
+      "Number of\nshares": "5,789,261",
+      "%": "1.39"
+    },
+    "Arpico Insurance PLC-Share Holders": {
+      "Number of\nshares": "3,950,082",
+      "%": "0.95"
+    },
+    "DFCC Bank PLC A/C 1": {
+      "Number of\nshares": "3,687,019",
+      "%": "0.89"
+    },
+    "Softlogic Life Insurance PLC-A/C No. 04\n(Participating Fund)": {
+      "Number of\nshares": "3,531,146",
+      "%": "0.85"
+    },
+    "People's Leasing & Finance PLC/Mr. D.\nSchaffter": {
+      "Number of\nshares": "3,353,269",
+      "%": "0.81"
+    },
+    "Others - registered": {
+      "Number of\nshares": "101,947,150",
+      "%": "24.54"
+    },
+    "- unregistered": {
+      "Number of\nshares": "-",
+      "%": "-"
+    },
+    "Total": {
+      "Number of\nshares": "415,513,426",
+      "%": "100.00"
+    }
+  },
+  "page_num": 489,
+  "raw_table": {
+    "method": "pdfplumber",
+    "rows": 25
+  }
+}

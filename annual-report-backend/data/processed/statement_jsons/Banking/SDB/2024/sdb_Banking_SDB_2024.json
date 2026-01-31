@@ -1,0 +1,310 @@
+{
+  "pdf_id": "sdb_Banking_SDB_2024",
+  "extraction_date": "2026-01-30T01:53:15.696107",
+  "statements": {
+    "income": {
+      "page_171": {
+        "raw_text_lines": 120,
+        "parsed_items": 30,
+        "data": {
+          "FINANCIAL STATEMENTS SANASA Development Bank PLC | Integrated Annual Report 2024 Year ended 31 December 2024": {
+            "2024": "2023"
+          },
+          "Gross Income": {
+            "2023": "23423423423",
+            "2024": "30,792,731,045"
+          },
+          "Interest income": {
+            "2024": "29,904,604,368"
+          },
+          "Less: Interest expenses": {
+            "2024": "(21,402,708,282)"
+          },
+          "Net interest income": {
+            "2024": "8,501,896,086"
+          },
+          "Fee and commission income": {
+            "2024": "466,072,678"
+          },
+          "Less: Fee and commission expenses": {
+            "2024": "(36,170,237)"
+          },
+          "Net fee and commission income": {
+            "2024": "429,902,441"
+          },
+          "Net gain/(loss) from trading": {
+            "2024": "1,257,500"
+          },
+          "Net fair value gain/(loss) of financial assets at fair value through profit or loss": {
+            "2024": "476,058,048"
+          },
+          "Net other operating income": {
+            "2024": "(55,261,550)"
+          },
+          "Total operating income": {
+            "2024": "9,353,852,526"
+          },
+          "Less: Impairment for loans and other losses": {
+            "2024": "(1,819,895,158)"
+          },
+          "Net operating income": {
+            "2024": "7,533,957,368"
+          },
+          "Less: Operating expenses Personnel expenses": {
+            "2024": "(3,304,438,822)"
+          },
+          "Depreciation and amortisation expenses": {
+            "2024": "(532,734,636)"
+          },
+          "Other expenses": {
+            "2024": "(2,216,703,954)"
+          },
+          "Operating profit before Value Added Tax (VAT) on financial services": {
+            "2024": "1,480,079,955"
+          },
+          "Less: Value Added Tax (VAT) on financial services": {
+            "2024": "(634,125,294)"
+          },
+          "Less: Social Security Contribution Levy": {
+            "2024": "(74,028,512)"
+          },
+          "Operating profit/(loss) after VAT on financial services": {
+            "2024": "771,926,149"
+          },
+          "Profit before tax": {
+            "2024": "771,926,149"
+          },
+          "Less: Tax expenses": {
+            "2024": "(305,103,937)"
+          },
+          "Profit for the year": {
+            "2024": "466,822,213"
+          },
+          "Other Comprehensive Income Other Comprehensive Income/(Expenses) not to be reclassified to profit or loss Actuarial gain/(loss) on defined benefit plans": {
+            "2024": "(195,633,301)"
+          },
+          "Deferred tax relating to defined benefit plans": {
+            "2024": "58,689,990"
+          },
+          "Revaluation Surplus on Property, Plant and Equipment": {
+            "2024": "74,939,000"
+          },
+          "Other Comprehensive Income for the year net of tax": {
+            "2024": "139,818,498"
+          },
+          "Total Comprehensive Income for the year": {
+            "2024": "606,640,711"
+          },
+          "Earnings per share on profit Basic/diluted earnings per share - (LKR).": {
+            "2024": "2.84"
+          }
+        },
+        "full_text": "169\nFINANCIAL STATEMENTS\nSANASA Development Bank PLC | Integrated Annual Report 2024\nYear ended 31 December 2024\nNote\n2024\n2023\nLKR\nLKR\nGross Income\n6\n21,062,580,699\n30,792,731,045\nInterest income\n20,005,051,598\n29,904,604,368\nLess: Interest expenses\n(12,184,587,605)\n(21,402,708,282)\nNet interest income\n7\n7,820,463,993\n8,501,896,086\nFee and commission income\n631,017,156\n466,072,678\nLess: Fee and commission expenses\n(46,695,036)\n(36,170,237)\nNet fee and commission income\n8\n584,322,120\n429,902,441\nNet gain/(loss) from trading\n9\n60,116,875\n1,257,500\nNet fair value gain/(loss) of financial assets at fair value through profit or loss\n10\n444,081,680\n476,058,048\nNet other operating income\n11\n(77,686,610)\n(55,261,550)\nTotal operating income\n8,831,298,058\n9,353,852,526\nLess: Impairment for loans and other losses\n12\n(558,949,981)\n(1,819,895,158)\nNet operating income\n8,272,348,077\n7,533,957,368\nLess: Operating expenses\nPersonnel expenses\n13\n(3,964,778,179)\n(3,304,438,822)\nDepreciation and amortisation expenses\n14\n(610,921,460)\n(532,734,636)\nOther expenses\n15\n(2,245,721,885)\n(2,216,703,954)\nOperating profit before Value Added Tax (VAT) on financial services\n1,450,926,553\n1,480,079,955\nLess: Value Added Tax (VAT) on financial services\n(668,192,659)\n(634,125,294)\nLess: Social Security Contribution Levy\n(98,470,974)\n(74,028,512)\nOperating profit/(loss) after VAT on financial services\n684,262,920\n771,926,149\nProfit before tax\n684,262,920\n771,926,149\nLess: Tax expenses\n16\n(274,728,675)\n(305,103,937)\nProfit for the year\n409,534,246\n466,822,213\nOther Comprehensive Income\nOther Comprehensive Income/(Expenses) not to be reclassified to profit or loss\nActuarial gain/(loss) on defined benefit plans\n32.1.2\n(195,633,301)\n92,684,997\nDeferred tax relating to defined benefit plans\n16.2.1\n58,689,990\n(27,805,499)\nRevaluation Surplus on Property, Plant and Equipment\n25\n69,025,000\n74,939,000\nOther Comprehensive Income for the year net of tax\n(67,918,311)\n139,818,498\nTotal Comprehensive Income for the year\n341,615,936\n606,640,711\nEarnings per share on profit\nBasic/diluted earnings per share - (LKR).\n17\n2.49\n2.84\nDividend per share: Gross (LKR)\n-\n-\nThe Accounting Policies and Notes on pages 173 through 243 from an integral part of the Financial Statements.\nSTATEMENT OF COMPREHENSIVE INCOME"
+      }
+    },
+    "balance": {
+      "page_172": {
+        "raw_text_lines": 133,
+        "parsed_items": 28,
+        "data": {
+          "SANASA Development Bank PLC | Integrated Annual Report 2024 As at 31 December 2024": {
+            "2024": "2023"
+          },
+          "Assets Cash and cash equivalents": {
+            "2024": "2,916,328,571"
+          },
+          "Placements with banks": {
+            "2024": "15,387,769,653"
+          },
+          "Financial assets fair value through profit or loss": {
+            "2024": "2,815,221,176"
+          },
+          "Financial assets at amortised cost - Loans and receivables to other customers": {
+            "2024": "98,868,895,650"
+          },
+          "- Debt and other instruments": {
+            "2024": "32,436,341,319"
+          },
+          "Financial assets measured at fair value through other comprehensive income": {
+            "2024": "56,939,525"
+          },
+          "Investment in subsidiary": {
+            "2024": "6,163,100"
+          },
+          "Property, plant and equipment": {
+            "2024": "845,329,269"
+          },
+          "Right of use assets": {
+            "2024": "680,305,296"
+          },
+          "Intangible assets": {
+            "2024": "753,566,178"
+          },
+          "Deferred tax assets": {
+            "2024": "778,912,222"
+          },
+          "Other assets": {
+            "2024": "1,656,730,025"
+          },
+          "Total assets": {
+            "2024": "156,957,400,105"
+          },
+          "Liabilities Due to other customers": {
+            "2024": "108,118,121,881"
+          },
+          "Other borrowings": {
+            "2024": "26,593,632,236"
+          },
+          "Subordinated term debts": {
+            "2024": "4,460,248,007"
+          },
+          "Retirement benefit obligation": {
+            "2024": "766,114,529"
+          },
+          "Current tax liabilities": {
+            "2024": "375,861,793"
+          },
+          "Other liabilities": {
+            "2024": "2,377,566,033"
+          },
+          "Total liabilities": {
+            "2024": "142,691,544,479"
+          },
+          "Equity Stated capital": {
+            "2024": "11,287,765,221"
+          },
+          "Statutory reserve fund": {
+            "2024": "340,572,453"
+          },
+          "Retained earnings": {
+            "2024": "2,275,936,735"
+          },
+          "Other reserves": {
+            "2024": "361,581,217"
+          },
+          "Total equity": {
+            "2024": "14,265,855,626"
+          },
+          "Total equity and liabilities": {
+            "2024": "156,957,400,105"
+          },
+          "Contingent liabilities and commitments": {
+            "2024": "814,261,712"
+          }
+        },
+        "full_text": "170\nSANASA Development Bank PLC | Integrated Annual Report 2024\nAs at 31 December 2024\nNote\n2024\n2023\nLKR\nLKR\nAssets\nCash and cash equivalents\n18\n2,442,293,957\n2,916,328,571\nPlacements with banks\n19\n9,083,957,854\n15,387,769,653\nFinancial assets fair value through profit or loss\n20\n6,739,200,074\n2,815,221,176\nFinancial assets at amortised cost\n- Loans and receivables to other customers\n21\n95,137,106,867\n98,868,895,650\n- Debt and other instruments\n22\n26,623,135,466\n32,436,341,319\nFinancial assets measured at fair value through other comprehensive income\n23\n208,145,880\n56,939,525\nInvestment in subsidiary\n24\n6,163,100\n6,163,100\nProperty, plant and equipment\n25\n1,115,086,601\n845,329,269\nRight of use assets\n26\n780,437,781\n680,305,296\nIntangible assets\n27\n747,453,984\n753,566,178\nDeferred tax assets\n16.2\n778,912,222\n533,810,343\nOther assets\n28\n1,494,056,173\n1,656,730,025\nTotal assets\n145,155,949,959\n156,957,400,105\nLiabilities\nDue to other customers\n29\n106,989,899,941\n108,118,121,881\nOther borrowings\n30\n19,075,131,562\n26,593,632,236\nSubordinated term debts\n31\n-\n4,460,248,007\nRetirement benefit obligation\n32\n1,041,381,783\n766,114,529\nCurrent tax liabilities\n717,274,037\n375,861,793\nOther liabilities\n33\n2,745,762,272\n2,377,566,033\nTotal liabilities\n130,569,449,595\n142,691,544,479\nEquity\nStated capital\n34\n11,406,601,998\n11,287,765,221\nStatutory reserve fund\n35\n361,049,165\n340,572,453\nRetained earnings\n36\n2,388,242,984\n2,275,936,735\nOther reserves\n37\n430,606,217\n361,581,217\nTotal equity\n14,586,500,364\n14,265,855,626\nTotal equity and liabilities\n145,155,949,959\n156,957,400,105\nContingent liabilities and commitments\n38\n869,324,533\n814,261,712\nCertification\nI certify these Financial Statements are in compliance with the requirements of the Companies Act No. 07 of 2007.\nMr. Shanka Abeywardene\nDGM-Finance & Planning/CFO\nThe Board of Directors is responsible for these Financial Statements.\nSigned for and on behalf of the Board by:\nMs. Dinithi Ratnayake\nMr. Chaaminda Kumarasiri\nMr. Kapila Ariyaratne\nMs. Amila Belpamulla\nChairperson\nDirector\nExecutive Director / CEO\nCompany Secretary\nThe Accounting Policies and Notes on pages 173 through 243 from an integral part of the Financial Statements.\n28th February 2025\nColombo\nSTATEMENT OF FINANCIAL POSITION"
+      }
+    },
+    "cashflow": {
+      "page_174": {
+        "raw_text_lines": 120,
+        "parsed_items": 34,
+        "data": {
+          "SANASA Development Bank PLC | Integrated Annual Report 2024 Year ended 31 December 2024": {
+            "2024": "2023"
+          },
+          "Cash flows from /(used in) operating activities Interest received": {
+            "2024": "25,826,399,990"
+          },
+          "Fee and commission received": {
+            "2024": "427,167,557"
+          },
+          "Receipts from other operating activities": {
+            "2024": "173,691,435"
+          },
+          "Interest payment": {
+            "2024": "(22,106,903,889)"
+          },
+          "Cash payment to employees": {
+            "2024": "(2,669,947,316)"
+          },
+          "Payments to suppliers and other operating activities": {
+            "2024": "(1,474,003,662)"
+          },
+          "Fee and commission expenses": {
+            "2024": "(36,170,237)"
+          },
+          "Operating profit before changes in operating assets": {
+            "2024": "140,233,878"
+          },
+          "(Increase)/decrease in operating assets Funds advanced to customers": {
+            "2024": "13,713,878,025"
+          },
+          "Net (increase)/ decrease in other short term securities": {
+            "2024": "(504,780,274)"
+          },
+          "Net (increase)/ decrease in other assets": {
+            "2024": "981,718,908"
+          },
+          "Increase/(decrease) in operating liabilities Deposits from customers": {
+            "2024": "1,297,608,748"
+          },
+          "Net increase/ (decrease) in other liabilities": {
+            "2024": "(738,504,867)"
+          },
+          "Net cash from operating activities before taxes": {
+            "2024": "14,890,154,418"
+          },
+          "VAT on financial services paid": {
+            "2024": "(529,353,686)"
+          },
+          "Income tax paid": {
+            "2024": "(63,625,526)"
+          },
+          "Net cash from operating activities": {
+            "2024": "14,297,175,206"
+          },
+          "Cash flows from /(used in) investing activities Dividend received": {
+            "2024": "7,770,016"
+          },
+          "(Increase)/decrease in non dealing securities": {
+            "2024": "(1,010)"
+          },
+          "(Increase)/decrease in dealing securities": {
+            "2024": "(432,167,303)"
+          },
+          "(Increase)/decrease in treasury bonds and other investments": {
+            "2024": "(9,320,167,647)"
+          },
+          "Proceeds from sale of property, plant and equipment": {
+            "2024": "107,695,750"
+          },
+          "Purchase of property, plant and equipment": {
+            "2024": "(92,141,023)"
+          },
+          "Purchase of intangible assets": {
+            "2024": "(124,979,901)"
+          },
+          "Net cash from/(used in) investing activities": {
+            "2024": "(9,853,991,118)"
+          },
+          "Cash flows from/(used in) financing activities Dividend paid (Withholding Tax)": {
+            "2024": "(20,971,198)"
+          },
+          "Repayment of long term borrowing": {
+            "2024": "(20,696,428,601)"
+          },
+          "Interest paid on subordinated debt": {
+            "2024": "(901,042,055)"
+          },
+          "Increase/(decrease) in borrowing": {
+            "2024": "16,972,269,562"
+          },
+          "Net cash flow from/(used in) financing activities": {
+            "2024": "(4,625,201,094)"
+          },
+          "Net increase/(decrease) in cash and cash equivalents": {
+            "2024": "(182,017,006)"
+          },
+          "Cash and cash equivalents at the beginning of the year": {
+            "2024": "3,166,328,570"
+          },
+          "Cash and cash equivalents at the end of the year": {
+            "2024": "3,444,749,642"
+          }
+        },
+        "full_text": "172\nSANASA Development Bank PLC | Integrated Annual Report 2024\nYear ended 31 December 2024\nNote\n2024\n2023\nLKR\nLKR\nCash flows from /(used in) operating activities\nInterest received\n20,577,268,436\n25,826,399,990\nFee and commission received\n696,809,121\n427,167,557\nReceipts from other operating activities\n2,779,833\n173,691,435\nInterest payment\n(14,406,824,572)\n(22,106,903,889)\nCash payment to employees\n(3,711,040,514)\n(2,669,947,316)\nPayments to suppliers and other operating activities\n(2,273,559,667)\n(1,474,003,662)\nFee and commission expenses\n(46,695,036)\n(36,170,237)\nOperating profit before changes in operating assets\n838,737,603\n140,233,878\n(Increase)/decrease in operating assets\nFunds advanced to customers\n3,068,032,781\n13,713,878,025\nNet (increase)/ decrease in other short term securities\n(1,038,710,069)\n(504,780,274)\nNet (increase)/ decrease in other assets\n(353,648,817)\n981,718,908\nIncrease/(decrease) in operating liabilities\nDeposits from customers\n994,426,906\n1,297,608,748\nNet increase/ (decrease) in other liabilities\n439,654,428\n(738,504,867)\nNet cash from operating activities before taxes\n3,948,492,832\n14,890,154,418\nVAT on financial services paid\n(810,714,276)\n(529,353,686)\nIncome tax paid\n(108,284,316)\n(63,625,526)\nNet cash from operating activities\n3,029,494,240\n14,297,175,206\nCash flows from /(used in) investing activities\nDividend received\n11\n291,165\n7,770,016\n(Increase)/decrease in non dealing securities\n(151,206,356)\n(1,010)\n(Increase)/decrease in dealing securities\n(3,419,780,343)\n(432,167,303)\n(Increase)/decrease in treasury bonds and other investments\n13,242,000,498\n(9,320,167,647)\nProceeds from sale of property, plant and equipment\n425,070\n107,695,750\nPurchase of property, plant and equipment\n25\n(429,588,159)\n(92,141,023)\nPurchase of intangible assets\n27\n(165,002,818)\n(124,979,901)\nNet cash from/(used in) investing activities\n9,077,139,057\n(9,853,991,118)\nCash flows from/(used in) financing activities\nDividend paid (Withholding Tax)\n36\n(20,971,198)\n-\nRepayment of long term borrowing\n(20,781,743,621)\n(20,696,428,601)\nInterest paid on subordinated debt\n(550,368,079)\n(901,042,055)\nIncrease/(decrease) in borrowing\n9,524,870,672\n16,972,269,562\nNet cash flow from/(used in) financing activities\n(11,828,212,226)\n(4,625,201,094)\nNet increase/(decrease) in cash and cash equivalents\n278,421,072\n(182,017,006)\nCash and cash equivalents at the beginning of the year\n18.3\n3,166,328,570\n3,348,345,576\nCash and cash equivalents at the end of the year\n18.3\n3,444,749,642\n3,166,328,570\nThe Accounting Policies and Notes on pages 173 through 243 from an integral part of the Financial Statements.\nSTATEMENT OF CASH FLOWS"
+      }
+    }
+  }
+}

@@ -16,7 +16,7 @@ ENV/
 env/
 
 # data folder
-/data
+
 
 #app folder
 annual-report-backend/app/statement_images/
@@ -31,7 +31,7 @@ logs/
 
 # Data and temp
 *.sqlite3
-data/
+
 temp/
 
 # Test outputs
@@ -53,9 +53,7 @@ frontend/dist/
 *.swo
 
 # Ignore extracted/intermediate data
-annual-report-backend/data/processed/
-annual-report-backend/data/temp/
-annual-report-backend/data/Progerss/
+
 # Python
 __pycache__/
 *.py[cod]
@@ -106,17 +104,16 @@ venv.bak/
 
 # Project-specific
 # Generated/extracted data
-data/processed/extracted_json/*.json
+
 app/results/
 app/statement_images/*/
 !app/statement_images/.gitkeep
 
 # Raw PDFs (too large for git)
-data/raw/**/*.pdf
-data/raw/**/*.PDF
+
 
 # Temporary files
-data/temp/
+
 logs/*.log
 *.log
 

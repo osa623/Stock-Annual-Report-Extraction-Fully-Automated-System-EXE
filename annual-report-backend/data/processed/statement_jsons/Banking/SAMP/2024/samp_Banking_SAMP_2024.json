@@ -1,0 +1,635 @@
+{
+  "pdf_id": "samp_Banking_SAMP_2024",
+  "extraction_date": "2026-01-18T19:40:03.778772",
+  "statements": {
+    "income": {
+      "page_276": {
+        "raw_text_lines": 268,
+        "parsed_items": 35,
+        "data": {
+          "For the year ended 31st December": {
+            "2024 (Bank)": "2024",
+            "2023 (Bank)": "2023"
+          },
+          "Change": {
+            "2024 (Bank)": "2024",
+            "2023 (Bank)": "2023"
+          },
+          "Gross income": {
+            "2024 (Bank)": "195,321,016",
+            "2023 (Bank)": "226,154,096",
+            "2024 (Group)": "206,569,194",
+            "2023 (Group)": "236,504,470"
+          },
+          "Interest income": {
+            "2024 (Bank)": "183,054,746",
+            "2023 (Bank)": "203,447,113",
+            "2024 (Group)": "192,358,624",
+            "2023 (Group)": "212,458,617"
+          },
+          "Less: Interest expense": {
+            "2024 (Bank)": "103,046,806",
+            "2023 (Bank)": "131,157,456",
+            "2024 (Group)": "107,696,550",
+            "2023 (Group)": "137,015,683"
+          },
+          "Net interest income": {
+            "2024 (Bank)": "80,007,940",
+            "2023 (Bank)": "72,289,657",
+            "2024 (Group)": "84,662,074",
+            "2023 (Group)": "75,442,934"
+          },
+          "Fee & commission income": {
+            "2024 (Bank)": "22,289,477",
+            "2023 (Bank)": "22,909,822",
+            "2024 (Group)": "22,981,135",
+            "2023 (Group)": "23,544,833"
+          },
+          "Less: Fee & commission expense": {
+            "2024 (Bank)": "4,780,225",
+            "2023 (Bank)": "4,023,353",
+            "2024 (Group)": "4,783,742",
+            "2023 (Group)": "4,025,896"
+          },
+          "Net fee & commission income": {
+            "2024 (Bank)": "17,509,252",
+            "2023 (Bank)": "18,886,469",
+            "2024 (Group)": "18,197,393",
+            "2023 (Group)": "19,518,937"
+          },
+          "Net (loss)/gain from trading": {
+            "2024 (Bank)": "(1,777,456)",
+            "2023 (Bank)": "761,786",
+            "2024 (Group)": "(1,704,262)",
+            "2023 (Group)": "708,976"
+          },
+          "Net (loss)/gain on derecognition of financial assets Capital gain on sale of financial assets": {
+            "2024 (Bank)": "10.1",
+            "2023 (Bank)": "1,134,815",
+            "2024 (Group)": "591,711",
+            "2023 (Group)": "1,090,027"
+          },
+          "Impact on restructuring of Sri Lanka International Sovereign Bonds": {
+            "2024 (Bank)": "10.2",
+            "2023 (Bank)": "(8,365,338)",
+            "2024 (Group)": "(8,365,338)"
+          },
+          "Net other operating income": {
+            "2024 (Bank)": "(1,015,228)",
+            "2023 (Bank)": "(1,556,336)",
+            "2024 (Group)": "209,008",
+            "2023 (Group)": "(807,379)"
+          },
+          "Total operating income": {
+            "2024 (Bank)": "87,493,985",
+            "2023 (Bank)": "90,973,287",
+            "2024 (Group)": "94,088,902",
+            "2023 (Group)": "95,462,891"
+          },
+          "Less: Impairment (reversal)/charge Loans and advances": {
+            "2024 (Bank)": "12.1",
+            "2023 (Bank)": "2,771,348",
+            "2024 (Group)": "18,066,669",
+            "2023 (Group)": "2,659,031"
+          },
+          "Sri Lanka International Sovereign Bonds": {
+            "2024 (Bank)": "12.2",
+            "2023 (Bank)": "(15,787,060)",
+            "2024 (Group)": "5,540,457",
+            "2023 (Group)": "(15,787,060)"
+          },
+          "Other financial assets and credit related commitments": {
+            "2024 (Bank)": "12.3",
+            "2023 (Bank)": "1,287,669",
+            "2024 (Group)": "(3,458,584)",
+            "2023 (Group)": "1,256,554"
+          },
+          "Total impairment (reversal)/charge": {
+            "2024 (Bank)": "(11,728,043)",
+            "2023 (Bank)": "20,148,542",
+            "2024 (Group)": "(11,871,475)",
+            "2023 (Group)": "20,209,602"
+          },
+          "Net operating income": {
+            "2024 (Bank)": "99,222,028",
+            "2023 (Bank)": "70,824,745",
+            "2024 (Group)": "105,960,377",
+            "2023 (Group)": "75,253,289"
+          },
+          "Less: Operating expenses Personnel expenses": {
+            "2024 (Bank)": "18,056,922",
+            "2023 (Bank)": "14,249,843",
+            "2024 (Group)": "20,433,710",
+            "2023 (Group)": "15,826,114"
+          },
+          "Depreciation & amortisation expenses": {
+            "2024 (Bank)": "3,088,048",
+            "2023 (Bank)": "2,644,499",
+            "2024 (Group)": "3,009,836",
+            "2023 (Group)": "2,554,373"
+          },
+          "Other operating expenses": {
+            "2024 (Bank)": "18,187,593",
+            "2023 (Bank)": "15,562,653",
+            "2024 (Group)": "19,358,845",
+            "2023 (Group)": "16,585,848"
+          },
+          "Total operating expenses": {
+            "2024 (Bank)": "39,332,563",
+            "2023 (Bank)": "32,456,995",
+            "2024 (Group)": "42,802,391",
+            "2023 (Group)": "34,966,335"
+          },
+          "Operating profit before taxes on financial services": {
+            "2024 (Bank)": "59,889,465",
+            "2023 (Bank)": "38,367,750",
+            "2024 (Group)": "63,157,986",
+            "2023 (Group)": "40,286,954"
+          },
+          "Less: Value added tax on financial services": {
+            "2024 (Bank)": "11,561,312",
+            "2023 (Bank)": "7,519,371",
+            "2024 (Group)": "12,266,093",
+            "2023 (Group)": "7,938,879"
+          },
+          "Social security contribution levy": {
+            "2024 (Bank)": "1,605,738",
+            "2023 (Bank)": "1,087,971",
+            "2024 (Group)": "1,703,624",
+            "2023 (Group)": "1,146,552"
+          },
+          "Total taxes on financial services": {
+            "2024 (Bank)": "13,167,050",
+            "2023 (Bank)": "8,607,342",
+            "2024 (Group)": "13,969,717",
+            "2023 (Group)": "9,085,431"
+          },
+          "Profit before income tax": {
+            "2024 (Bank)": "46,722,415",
+            "2023 (Bank)": "29,760,408",
+            "2024 (Group)": "49,188,269",
+            "2023 (Group)": "31,201,523"
+          },
+          "Less: Income tax expense": {
+            "2024 (Bank)": "19,401,803",
+            "2023 (Bank)": "12,620,329",
+            "2024 (Group)": "20,485,009",
+            "2023 (Group)": "13,277,241"
+          },
+          "Profit for the year": {
+            "2024 (Bank)": "27,320,612",
+            "2023 (Bank)": "17,140,079",
+            "2024 (Group)": "28,703,260",
+            "2023 (Group)": "17,924,282"
+          },
+          "Attributable to: Equity holders of the Bank": {
+            "2024 (Bank)": "27,320,612",
+            "2023 (Bank)": "17,140,079",
+            "2024 (Group)": "28,703,260",
+            "2023 (Group)": "17,924,282"
+          },
+          "Non-controlling interest": {
+            "2024 (Bank)": "27,320,612",
+            "2023 (Bank)": "17,140,079",
+            "2024 (Group)": "28,703,260",
+            "2023 (Group)": "17,924,282"
+          },
+          "Earnings per share: Basic/Diluted (Rs)": {
+            "2024 (Bank)": "23.30",
+            "2023 (Bank)": "14.62",
+            "2024 (Group)": "24.48",
+            "2023 (Group)": "15.28"
+          },
+          "Dividend per share: Gross (Rs)": {
+            "2024 (Bank)": "9.35",
+            "2023 (Bank)": "5.85"
+          },
+          "Dividend per share: Net (Rs)": {
+            "2024 (Bank)": "7.95",
+            "2023 (Bank)": "4.97"
+          }
+        },
+        "full_text": "274\nSAMPATH BANK PLC\nANNUAL REPORT 2024\nBANK\nGROUP\nFor the year ended 31st December\nNote\n2024\n2023\nChange\n2024\n2023\nChange\nRs 000\nRs 000\n%\nRs 000\nRs 000\n%\nGross income\n6\n195,321,016\n226,154,096\n(14)\n206,569,194  236,504,470\n(13)\nInterest  income\n183,054,746\n203,447,113\n(10)  192,358,624\n212,458,617\n(9)\nLess: Interest expense\n103,046,806\n131,157,456\n(21)\n107,696,550\n137,015,683\n(21)\nNet interest income\n7\n80,007,940\n72,289,657\n11\n84,662,074\n75,442,934\n12\nFee & commission income\n22,289,477\n22,909,822\n(3)\n22,981,135\n23,544,833\n(2)\nLess: Fee & commission expense\n4,780,225\n4,023,353\n19\n4,783,742\n4,025,896\n19\nNet fee & commission income\n8\n17,509,252\n18,886,469\n(7)\n18,197,393\n19,518,937\n(7)\nNet (loss)/gain from trading\n9\n(1,777,456)\n761,786\n(333)\n(1,704,262)\n708,976\n(340)\nNet (loss)/gain on derecognition of financial assets\nCapital gain on sale of financial assets\n10.1\n1,134,815\n591,711\n92\n1,090,027\n599,423\n82\nImpact on restructuring of Sri Lanka\nInternational Sovereign Bonds\n10.2\n(8,365,338)\n-\n(100)\n(8,365,338)\n-\n(100)\nNet other operating income\n11\n(1,015,228)\n(1,556,336)\n35\n209,008\n(807,379)\n126\nTotal operating income\n87,493,985\n90,973,287\n(4)\n94,088,902\n95,462,891\n(1)\nLess: Impairment (reversal)/charge\nLoans and advances\n12.1\n2,771,348\n18,066,669\n(85)\n2,659,031\n18,123,668\n(85)\nSri Lanka International Sovereign Bonds\n12.2\n(15,787,060)\n5,540,457\n(385)\n(15,787,060)\n5,540,457\n(385)\nOther financial assets and credit related\ncommitments\n12.3\n1,287,669\n(3,458,584)\n137\n1,256,554\n(3,454,523)\n136\nTotal impairment (reversal)/charge\n(11,728,043)\n20,148,542\n(158)\n(11,871,475)\n20,209,602\n(159)\nNet operating income\n99,222,028\n70,824,745\n40  105,960,377\n75,253,289\n41\nLess: Operating expenses\nPersonnel expenses\n13\n18,056,922\n14,249,843\n27\n20,433,710\n15,826,114\n29\nDepreciation & amortisation expenses\n14\n3,088,048\n2,644,499\n17\n3,009,836\n2,554,373\n18\nOther operating expenses\n15\n18,187,593\n15,562,653\n17\n19,358,845\n16,585,848\n17\nTotal operating expenses\n39,332,563\n32,456,995\n21\n42,802,391\n34,966,335\n22\nOperating profit before taxes on financial services\n59,889,465\n38,367,750\n56\n63,157,986\n40,286,954\n57\nLess: Value added tax on financial services\n11,561,312\n7,519,371\n54\n12,266,093\n7,938,879\n55\nSocial security contribution levy\n1,605,738\n1,087,971\n48\n1,703,624\n1,146,552\n49\nTotal taxes on financial services\n13,167,050\n8,607,342\n53\n13,969,717\n9,085,431\n54\nProfit before income tax\n46,722,415\n29,760,408\n57\n49,188,269\n31,201,523\n58\nLess: Income tax expense\n16\n19,401,803\n12,620,329\n54\n20,485,009\n13,277,241\n54\nProfit for the year\n27,320,612\n17,140,079\n59\n28,703,260\n17,924,282\n60\nAttributable to:\nEquity holders of the Bank\n27,320,612\n17,140,079\n59\n28,703,260\n17,924,282\n60\nNon-controlling interest\n-\n-\n-\n27,320,612\n17,140,079\n59\n28,703,260\n17,924,282\n60\nEarnings per share: Basic/Diluted (Rs)\n17\n23.30\n14.62\n59\n24.48\n15.28\n60\nDividend per share\n18\nDividend per share: Gross (Rs)\n9.35\n5.85\nDividend per share: Net (Rs)\n7.95\n4.97\n*Based on proposed dividend which is to be approved at the Annual General Meeting.\nThe Notes to the Financial Statements from pages 283 to 421 form an integral part of these Financial Statements.\nStatement of Profit or Loss"
+      }
+    },
+    "balance": {
+      "page_278": {
+        "raw_text_lines": 240,
+        "parsed_items": 29,
+        "data": {
+          "As at 31st December": {
+            "2024 (Bank)": "2024",
+            "2023 (Bank)": "2023"
+          },
+          "Change": {
+            "2024 (Bank)": "2024",
+            "2023 (Bank)": "2023"
+          },
+          "ASSETS Cash & cash equivalents": {
+            "2024 (Bank)": "46,229,318",
+            "2023 (Bank)": "79,272,087",
+            "2024 (Group)": "46,501,139",
+            "2023 (Group)": "79,530,247"
+          },
+          "Balances with Central Bank of Sri Lanka": {
+            "2024 (Bank)": "16,373,983",
+            "2023 (Bank)": "14,463,854",
+            "2024 (Group)": "16,373,983",
+            "2023 (Group)": "14,463,854"
+          },
+          "Placements with banks": {
+            "2024 (Bank)": "26,452,245",
+            "2023 (Bank)": "33,741,322",
+            "2024 (Group)": "26,452,245",
+            "2023 (Group)": "33,741,322"
+          },
+          "Reverse repurchase agreements": {
+            "2024 (Bank)": "1,000,220",
+            "2023 (Bank)": "6,596,063",
+            "2024 (Group)": "150,400",
+            "2023 (Group)": "4,286"
+          },
+          "Derivative financial instruments": {
+            "2024 (Bank)": "3,200,590",
+            "2023 (Bank)": "1,498,777",
+            "2024 (Group)": "3,200,590",
+            "2023 (Group)": "1,498,777"
+          },
+          "Financial assets recognised through profit or loss - measured at fair value": {
+            "2024 (Bank)": "4,614,332",
+            "2023 (Bank)": "4,744,188",
+            "2024 (Group)": "4,614,332",
+            "2023 (Group)": "4,841,302"
+          },
+          "Financial assets at amortised cost - loans & advances": {
+            "2024 (Bank)": "860,151,610",
+            "2023 (Bank)": "756,435,559",
+            "2024 (Group)": "901,950,481",
+            "2023 (Group)": "787,355,719"
+          },
+          "- debt & other instruments": {
+            "2024 (Bank)": "401,280,763",
+            "2023 (Bank)": "368,100,002",
+            "2024 (Group)": "405,616,020",
+            "2023 (Group)": "373,899,842"
+          },
+          "Financial assets - fair value through other comprehensive income": {
+            "2024 (Bank)": "367,782,512",
+            "2023 (Bank)": "216,022,295",
+            "2024 (Group)": "367,782,568",
+            "2023 (Group)": "216,022,351"
+          },
+          "Investment in subsidiaries": {
+            "2024 (Bank)": "4,190,721",
+            "2023 (Bank)": "4,110,642"
+          },
+          "Property, plant & equipment": {
+            "2024 (Bank)": "10,854,850",
+            "2023 (Bank)": "9,623,120",
+            "2024 (Group)": "22,012,514",
+            "2023 (Group)": "19,960,610"
+          },
+          "Intangible assets": {
+            "2024 (Bank)": "888,711",
+            "2023 (Bank)": "745,395",
+            "2024 (Group)": "899,752",
+            "2023 (Group)": "766,532"
+          },
+          "Right-of-use assets": {
+            "2024 (Bank)": "7,860,280",
+            "2023 (Bank)": "3,605,525",
+            "2024 (Group)": "5,488,197",
+            "2023 (Group)": "3,152,666"
+          },
+          "Deferred tax assets": {
+            "2024 (Bank)": "10,934,412",
+            "2023 (Bank)": "17,292,023",
+            "2024 (Group)": "11,177,659",
+            "2023 (Group)": "17,517,519"
+          },
+          "Other assets": {
+            "2024 (Bank)": "18,820,112",
+            "2023 (Bank)": "33,204,832",
+            "2024 (Group)": "21,023,359",
+            "2023 (Group)": "35,386,047"
+          },
+          "Total Assets": {
+            "2024 (Bank)": "1,777,941,123",
+            "2023 (Bank)": "1,541,948,421",
+            "2024 (Group)": "1,836,995,366",
+            "2023 (Group)": "1,587,375,988"
+          },
+          "LIABILITIES Due to banks": {
+            "2024 (Bank)": "23,259,811",
+            "2023 (Bank)": "11,621,838",
+            "2024 (Group)": "30,067,815",
+            "2023 (Group)": "17,344,766"
+          },
+          "Securities sold under repurchase agreements": {
+            "2024 (Bank)": "40,312,784",
+            "2023 (Bank)": "34,688,209",
+            "2024 (Group)": "40,312,784",
+            "2023 (Group)": "34,438,086"
+          },
+          "Financial liabilities at amortised cost - due to depositors": {
+            "2024 (Bank)": "1,455,864,416",
+            "2023 (Bank)": "1,253,642,547",
+            "2024 (Group)": "1,487,148,551",
+            "2023 (Group)": "1,276,551,041"
+          },
+          "- due to other borrowers": {
+            "2024 (Bank)": "8,061,364",
+            "2023 (Bank)": "6,637,129",
+            "2024 (Group)": "8,061,364",
+            "2023 (Group)": "6,637,129"
+          },
+          "- due to debt securities holders": {
+            "2024 (Bank)": "18,891,500",
+            "2023 (Bank)": "26,709,893",
+            "2024 (Group)": "24,741,652",
+            "2023 (Group)": "30,386,809"
+          },
+          "Retirement benefit obligation": {
+            "2024 (Bank)": "5,799,502",
+            "2023 (Bank)": "3,170,247",
+            "2024 (Group)": "6,019,892",
+            "2023 (Group)": "3,355,039"
+          },
+          "Dividend payable": {
+            "2024 (Bank)": "298,695",
+            "2023 (Bank)": "212,571",
+            "2024 (Group)": "298,695",
+            "2023 (Group)": "212,571"
+          },
+          "Current tax liabilities": {
+            "2024 (Bank)": "14,522,729",
+            "2023 (Bank)": "16,220,788",
+            "2024 (Group)": "15,312,202",
+            "2023 (Group)": "16,688,675"
+          },
+          "Deferred tax liabilities": {
+            "2024 (Bank)": "1,465,112",
+            "2023 (Bank)": "1,465,112"
+          },
+          "Other liabilities": {
+            "2024 (Bank)": "41,191,516",
+            "2023 (Bank)": "39,673,346",
+            "2024 (Group)": "42,484,397",
+            "2023 (Group)": "40,967,491"
+          },
+          "Total Liabilities": {
+            "2024 (Bank)": "1,611,402,907",
+            "2023 (Bank)": "1,394,075,345",
+            "2024 (Group)": "1,659,113,054",
+            "2023 (Group)": "1,429,545,496"
+          }
+        },
+        "full_text": "276\nSAMPATH BANK PLC\nANNUAL REPORT 2024\nBANK\nGROUP\nAs at 31st December\nNote\n2024\n2023\nChange\n2024\n2023\nChange\nRs 000\nRs 000\n%\nRs 000\nRs 000\n%\nASSETS\nCash & cash equivalents\n20\n46,229,318\n79,272,087\n(42)\n46,501,139\n79,530,247\n(42)\nBalances with Central Bank of Sri Lanka\n21\n16,373,983\n14,463,854\n13\n16,373,983\n14,463,854\n13\nPlacements with banks\n22\n26,452,245\n33,741,322\n(22)\n26,452,245\n33,741,322\n(22)\nReverse repurchase agreements\n1,000,220\n-\n100\n6,596,063\n150,400\n4,286\nDerivative financial instruments\n23\n507,054\n587,577\n(14)\n507,054\n587,577\n(14)\nFinancial assets recognised through profit or\nloss - measured at fair value\n24\n4,614,332\n4,744,188\n(3)\n4,614,332\n4,841,302\n(5)\nFinancial assets at amortised cost\n- loans & advances\n25\n860,151,610\n756,435,559\n14\n901,950,481\n787,355,719\n15\n- debt & other instruments\n26\n401,280,763\n368,100,002\n9\n405,616,020\n373,899,842\n8\nFinancial assets - fair value through other\ncomprehensive income\n27\n367,782,512\n216,022,295\n70\n367,782,568\n216,022,351\n70\nInvestment in subsidiaries\n28\n4,190,721\n4,110,642\n2\n-\n-\n-\nProperty, plant & equipment\n29\n10,854,850\n9,623,120\n13\n22,012,514\n19,960,610\n10\nIntangible assets\n30\n888,711\n745,395\n19\n899,752\n766,532\n17\nRight-of-use assets\n31\n7,860,280\n3,605,525\n118\n5,488,197\n3,152,666\n74\nDeferred tax assets\n32\n10,934,412\n17,292,023\n(37)\n11,177,659\n17,517,519\n(36)\nOther assets\n33\n18,820,112\n33,204,832\n(43)\n21,023,359\n35,386,047\n(41)\nTotal Assets\n1,777,941,123  1,541,948,421\n15  1,836,995,366  1,587,375,988\n16\nLIABILITIES\nDue to banks\n34\n23,259,811\n11,621,838\n100\n30,067,815\n17,344,766\n73\nDerivative financial instruments\n23\n3,200,590\n1,498,777\n114\n3,200,590\n1,498,777\n114\nSecurities sold under repurchase\nagreements\n40,312,784\n34,688,209\n16\n40,312,784\n34,438,086\n17\nFinancial liabilities at amortised cost\n- due to depositors\n35\n1,455,864,416  1,253,642,547\n16\n1,487,148,551\n1,276,551,041\n16\n- due to other borrowers\n36\n8,061,364\n6,637,129\n21\n8,061,364\n6,637,129\n21\n- due to debt securities holders\n37\n18,891,500\n26,709,893\n(29)\n24,741,652\n30,386,809\n(19)\nRetirement benefit obligation\n38\n5,799,502\n3,170,247\n83\n6,019,892\n3,355,039\n79\nDividend payable\n298,695\n212,571\n41\n298,695\n212,571\n41\nCurrent tax liabilities\n39\n14,522,729\n16,220,788\n(10)\n15,312,202\n16,688,675\n(8)\nDeferred tax liabilities\n32\n-\n-\n-\n1,465,112\n1,465,112\n-\nOther liabilities\n40\n41,191,516\n39,673,346\n4\n42,484,397\n40,967,491\n4\nTotal Liabilities\n1,611,402,907  1,394,075,345\n16\n1,659,113,054  1,429,545,496\n16\nStatement of Financial Position"
+      }
+    },
+    "cashflow": {
+      "page_282": {
+        "raw_text_lines": 192,
+        "parsed_items": 41,
+        "data": {
+          "For the year ended 31st December": {
+            "2024 (Bank)": "2024",
+            "2023 (Bank)": "2023",
+            "2024 (Group)": "2024",
+            "2023 (Group)": "2023"
+          },
+          "Rs 000 Rs 000 Rs 000 Rs 000 Cash flows from operating activities Interest receipts": {
+            "2024 (Bank)": "180,354,147",
+            "2023 (Bank)": "191,742,377",
+            "2024 (Group)": "189,657,484",
+            "2023 (Group)": "201,389,033"
+          },
+          "Interest payments": {
+            "2024 (Bank)": "(103,622,237)",
+            "2023 (Bank)": "(130,310,620)",
+            "2024 (Group)": "(108,114,476)",
+            "2023 (Group)": "(135,941,536)"
+          },
+          "Net commission receipts": {
+            "2024 (Bank)": "17,492,315",
+            "2023 (Bank)": "18,904,279",
+            "2024 (Group)": "18,180,456",
+            "2023 (Group)": "19,536,747"
+          },
+          "Cash payments to employees": {
+            "2024 (Bank)": "(15,448,145)",
+            "2023 (Bank)": "(12,697,724)",
+            "2024 (Group)": "(17,763,626)",
+            "2023 (Group)": "(14,217,850)"
+          },
+          "Taxes on financial services": {
+            "2024 (Bank)": "(10,923,333)",
+            "2023 (Bank)": "(9,473,348)",
+            "2024 (Group)": "(11,698,074)",
+            "2023 (Group)": "(9,923,944)"
+          },
+          "Receipts from other operating activities": {
+            "2024 (Bank)": "1,948,732",
+            "2023 (Bank)": "1,342,722",
+            "2024 (Group)": "3,256,747",
+            "2023 (Group)": "2,302,112"
+          },
+          "Cash payments to other operating activities": {
+            "2024 (Bank)": "(17,975,503)",
+            "2023 (Bank)": "(15,022,764)",
+            "2024 (Group)": "(18,498,833)",
+            "2023 (Group)": "(16,146,309)"
+          },
+          "Operating profit before changes in operating assets & liabilities (Note A)": {
+            "2024 (Bank)": "51,825,976",
+            "2023 (Bank)": "44,484,922",
+            "2024 (Group)": "55,019,678",
+            "2023 (Group)": "46,998,253"
+          },
+          "(Increase)/decrease in operating assets Balances with Central Bank of Sri Lanka": {
+            "2024 (Bank)": "(1,910,129)",
+            "2023 (Bank)": "17,115,331",
+            "2024 (Group)": "(1,910,129)",
+            "2023 (Group)": "17,115,331"
+          },
+          "Financial assets at amortised cost - loans & advances": {
+            "2024 (Bank)": "(122,545,411)",
+            "2023 (Bank)": "27,859,038",
+            "2024 (Group)": "(133,323,484)",
+            "2023 (Group)": "25,070,961"
+          },
+          "Other assets": {
+            "2024 (Bank)": "12,945,175",
+            "2023 (Bank)": "(7,228,410)",
+            "2024 (Group)": "13,047,618",
+            "2023 (Group)": "(7,678,957)"
+          },
+          "Increase/(decrease) in operating liabilities Due to banks": {
+            "2024 (Bank)": "12,148,873",
+            "2023 (Bank)": "908,354",
+            "2024 (Group)": "13,392,435",
+            "2023 (Group)": "2,628,776"
+          },
+          "Repurchase agreements": {
+            "2024 (Bank)": "5,651,885",
+            "2023 (Bank)": "32,522,183",
+            "2024 (Group)": "5,902,008",
+            "2023 (Group)": "32,272,060"
+          },
+          "Financial liabilities at amortised cost - due to depositors": {
+            "2024 (Bank)": "224,855,561",
+            "2023 (Bank)": "179,368,098",
+            "2024 (Group)": "233,186,218",
+            "2023 (Group)": "182,753,734"
+          },
+          "Financial liabilities at amortised cost - due to other borrowers": {
+            "2024 (Bank)": "1,426,343",
+            "2023 (Bank)": "(2,525,136)",
+            "2024 (Group)": "1,426,343",
+            "2023 (Group)": "(2,525,136)"
+          },
+          "Other liabilities": {
+            "2024 (Bank)": "(7,396,549)",
+            "2023 (Bank)": "8,214,834",
+            "2024 (Group)": "(6,369,275)",
+            "2023 (Group)": "8,513,773"
+          },
+          "Net cash generated from operating activities before income tax": {
+            "2024 (Bank)": "177,001,724",
+            "2023 (Bank)": "300,719,214",
+            "2024 (Group)": "180,371,412",
+            "2023 (Group)": "305,148,795"
+          },
+          "Income tax paid": {
+            "2024 (Bank)": "(13,973,220)",
+            "2023 (Bank)": "(14,344,132)",
+            "2024 (Group)": "(14,754,319)",
+            "2023 (Group)": "(14,934,280)"
+          },
+          "Net cash generated from operating activities": {
+            "2024 (Bank)": "163,028,504",
+            "2023 (Bank)": "286,375,082",
+            "2024 (Group)": "165,617,093",
+            "2023 (Group)": "290,214,515"
+          },
+          "Cash flows from investing activities Purchase of property, plant & equipment 29.1 & 29.2": {
+            "2024 (Bank)": "(2,235,969)",
+            "2023 (Bank)": "(1,587,186)",
+            "2024 (Group)": "(3,544,702)",
+            "2023 (Group)": "(2,209,713)"
+          },
+          "Proceeds from disposal of property, plant & equipment": {
+            "2024 (Bank)": "9,187",
+            "2023 (Bank)": "13,497",
+            "2024 (Group)": "3,704"
+          },
+          "Net cash flow from reverse repurchase agreements": {
+            "2024 (Bank)": "(1,000,000)",
+            "2023 (Bank)": "10,000,000",
+            "2024 (Group)": "(6,445,443)",
+            "2023 (Group)": "10,076,600"
+          },
+          "Net cash flow from financial assets - FVPL": {
+            "2024 (Bank)": "295,543",
+            "2023 (Bank)": "474,885",
+            "2024 (Group)": "420,114",
+            "2023 (Group)": "512,307"
+          },
+          "Net cash flow from debt instruments at amortised cost": {
+            "2024 (Bank)": "(29,421,237)",
+            "2023 (Bank)": "(109,767,329)",
+            "2024 (Group)": "(27,956,564)",
+            "2023 (Group)": "(110,105,303)"
+          },
+          "Net cash flow from financial assets - FVOCI": {
+            "2024 (Bank)": "(150,588,119)",
+            "2023 (Bank)": "(151,786,388)",
+            "2024 (Group)": "(150,588,119)",
+            "2023 (Group)": "(151,786,388)"
+          },
+          "Purchase of intangible assets": {
+            "2024 (Bank)": "(523,288)",
+            "2023 (Bank)": "(429,348)",
+            "2024 (Group)": "(523,768)",
+            "2023 (Group)": "(437,982)"
+          },
+          "Dividend received from financial assets": {
+            "2024 (Bank)": "135,712",
+            "2023 (Bank)": "138,679",
+            "2024 (Group)": "137,069",
+            "2023 (Group)": "140,163"
+          },
+          "Net cash used in investing activities": {
+            "2024 (Bank)": "(183,328,171)"
+          },
+          "(252,956,096) (188,487,916)": {
+            "2024 (Bank)": "(253,806,612)"
+          },
+          "Cash flows from financing activities Proceeds from the issue of debentures": {
+            "2024 (Bank)": "37.1",
+            "2023 (Bank)": "10,000,000",
+            "2024 (Group)": "4,000,000",
+            "2023 (Group)": "10,000,000"
+          },
+          "Redemption of debentures": {
+            "2024 (Bank)": "37.1",
+            "2023 (Bank)": "(7,000,000)",
+            "2024 (Group)": "(7,500,000)",
+            "2023 (Group)": "(8,500,000)"
+          },
+          "Net proceeds from securitisation": {
+            "2024 (Bank)": "(457,999)",
+            "2023 (Bank)": "(1,705,002)"
+          },
+          "Repayment of long term bond": {
+            "2024 (Bank)": "(600,000)",
+            "2023 (Bank)": "(600,000)"
+          },
+          "Dividend paid": {
+            "2024 (Bank)": "(6,860,299)",
+            "2023 (Bank)": "(4,145,494)",
+            "2024 (Group)": "(6,860,299)",
+            "2023 (Group)": "(4,145,494)"
+          },
+          "Repayment of principal portion of lease liabilities": {
+            "2024 (Bank)": "(1,862,720)",
+            "2023 (Bank)": "(1,684,608)",
+            "2024 (Group)": "(1,180,132)",
+            "2023 (Group)": "(945,581)"
+          },
+          "Net cash used in financing activities": {
+            "2024 (Bank)": "(15,723,019)",
+            "2023 (Bank)": "(3,930,102)",
+            "2024 (Group)": "(12,998,430)",
+            "2023 (Group)": "(6,896,077)"
+          },
+          "Net cash (used in)/generated during the year": {
+            "2024 (Bank)": "(36,022,686)",
+            "2023 (Bank)": "29,488,884",
+            "2024 (Group)": "(35,869,253)",
+            "2023 (Group)": "29,511,826"
+          },
+          "Net foreign exchange difference": {
+            "2024 (Bank)": "(5,305,469)",
+            "2023 (Bank)": "(6,559,801)",
+            "2024 (Group)": "(5,305,469)",
+            "2023 (Group)": "(6,559,801)"
+          },
+          "Cash & cash equivalents at the beginning of the year": {
+            "2024 (Bank)": "113,001,014",
+            "2023 (Bank)": "90,071,931",
+            "2024 (Group)": "112,814,749",
+            "2023 (Group)": "89,862,724"
+          },
+          "Cash & cash equivalents at the end of the year (Note B)": {
+            "2024 (Bank)": "71,672,859",
+            "2023 (Bank)": "113,001,014",
+            "2024 (Group)": "71,640,027",
+            "2023 (Group)": "112,814,749"
+          }
+        },
+        "full_text": "280\nSAMPATH BANK PLC\nANNUAL REPORT 2024\nStatement of Cash Flows\nBANK\nGROUP\nFor the year ended 31st December\nNote\n2024\n2023\n2024\n2023\nRs 000\nRs 000\nRs 000\nRs 000\nCash flows from operating activities\nInterest receipts\n180,354,147  191,742,377  189,657,484  201,389,033\nInterest payments\n(103,622,237)  (130,310,620)  (108,114,476)  (135,941,536)\nNet commission receipts\n17,492,315\n18,904,279\n18,180,456\n19,536,747\nCash payments to employees\n(15,448,145)\n(12,697,724)\n(17,763,626)\n(14,217,850)\nTaxes on financial services\n(10,923,333)\n(9,473,348)\n(11,698,074)\n(9,923,944)\nReceipts from other operating activities\n1,948,732\n1,342,722\n3,256,747\n2,302,112\nCash payments to other operating activities\n(17,975,503)\n(15,022,764)  (18,498,833)\n(16,146,309)\nOperating profit before changes  in operating assets & liabilities (Note A)\n51,825,976\n44,484,922\n55,019,678\n46,998,253\n(Increase)/decrease in operating assets\nBalances with Central Bank of Sri Lanka\n(1,910,129)\n17,115,331\n(1,910,129)\n17,115,331\nFinancial assets at amortised cost - loans & advances\n(122,545,411)\n27,859,038  (133,323,484)  25,070,961\nOther assets\n12,945,175\n(7,228,410)\n13,047,618\n(7,678,957)\n(111,510,365)\n37,745,959  (122,185,995)\n34,507,335\nIncrease/(decrease) in operating liabilities\nDue to banks\n12,148,873\n908,354\n13,392,435\n2,628,776\nRepurchase agreements\n5,651,885\n32,522,183\n5,902,008\n32,272,060\nFinancial liabilities at amortised cost - due to depositors\n224,855,561  179,368,098  233,186,218  182,753,734\nFinancial liabilities at amortised cost - due to other borrowers\n1,426,343\n(2,525,136)\n1,426,343\n(2,525,136)\nOther liabilities\n(7,396,549)\n8,214,834\n(6,369,275)\n8,513,773\n236,686,113  218,488,333  247,537,729  223,643,207\nNet cash generated from operating activities before income tax\n177,001,724  300,719,214  180,371,412  305,148,795\nIncome tax paid\n39\n(13,973,220)\n(14,344,132)\n(14,754,319)  (14,934,280)\nNet cash generated from operating activities\n163,028,504  286,375,082  165,617,093  290,214,515\nCash flows from investing activities\nPurchase of property, plant & equipment\n29.1 & 29.2\n(2,235,969)\n(1,587,186)\n(3,544,702)\n(2,209,713)\nProceeds from disposal of property, plant & equipment\n9,187\n591\n13,497\n3,704\nNet cash flow from reverse repurchase agreements\n(1,000,000)\n10,000,000\n(6,445,443)\n10,076,600\nNet cash flow from financial assets - FVPL\n295,543\n474,885\n420,114\n512,307\nNet cash flow from debt instruments at amortised cost\n(29,421,237)  (109,767,329)  (27,956,564)  (110,105,303)\nNet cash flow from financial assets - FVOCI\n(150,588,119)  (151,786,388)  (150,588,119)  (151,786,388)\nPurchase of intangible assets\n30\n(523,288)\n(429,348)\n(523,768)\n(437,982)\nDividend received from financial assets\n135,712\n138,679\n137,069\n140,163\nNet cash used in investing activities\n(183,328,171)  (252,956,096) (188,487,916)  (253,806,612)\nCash flows from financing activities\nProceeds from the issue of debentures\n37.1\n-    10,000,000\n4,000,000\n10,000,000\nRedemption of debentures\n37.1\n(7,000,000)\n(7,500,000)\n(8,500,000)\n(9,500,000)\nNet proceeds from securitisation\n-\n-\n(457,999)\n(1,705,002)\nRepayment of long term bond\n-\n(600,000)\n-\n(600,000)\nDividend paid\n(6,860,299)\n(4,145,494)\n(6,860,299)\n(4,145,494)\nRepayment of principal portion of lease liabilities\n(1,862,720)\n(1,684,608)\n(1,180,132)\n(945,581)\nNet cash used in financing activities\n(15,723,019)\n(3,930,102)  (12,998,430)\n(6,896,077)\nNet cash (used in)/generated during the year\n(36,022,686)\n29,488,884  (35,869,253)\n29,511,826\nNet foreign exchange difference\n(5,305,469)\n(6,559,801)\n(5,305,469)\n(6,559,801)\nCash & cash equivalents at the beginning of the year\n113,001,014\n90,071,931  112,814,749\n89,862,724\nCash & cash equivalents at the end of the year (Note B)\n71,672,859  113,001,014\n71,640,027  112,814,749\nThe Notes to the Financial Statements from pages 283 to 421 form an integral part of these Financial Statements."
+      }
+    }
+  }
+}

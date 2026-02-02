@@ -1,0 +1,402 @@
+{
+  "nodes": [
+    {
+      "id": "root_group",
+      "label": "Group / Parent",
+      "type": "root",
+      "parentNode": null
+    },
+    {
+      "id": "sub_0_0bd8",
+      "label": "REPORT",
+      "type": "subsidiary",
+      "parentNode": "root_group",
+      "data": {
+        "ANNUAL": "REPORT",
+        "1. 1.1": "CORPORATE Reporting",
+        "unknown": "The",
+        "In": "re-registered terms rated of",
+        "the the": "Bank and",
+        "As": "at December",
+        "1.2 The": "Principle principal",
+        "leasing, Retail": "banking, housing small",
+        "HOLDING": "% NDB Holdings Limited",
+        "PRINCIPAL ACTIVITY": "banking",
+        "PRINCIPAL PLACE OF": "Level",
+        "BUSINESS": "Mawatha, Colombo",
+        "INCORPORATION COUNTRY": "OF Sri",
+        "270": "FINANCIAL",
+        "label": "REPORT"
+      }
+    },
+    {
+      "id": "sub_1_7df5",
+      "label": "2024",
+      "type": "subsidiary",
+      "parentNode": "root_group",
+      "data": {
+        "ANNUAL": "2024",
+        "NOTES": "TO",
+        "1. 1.1": "Entity",
+        "unknown": "Bank",
+        "In": "unsecured the in",
+        "the the": "its",
+        "As": "branches",
+        "1.2 The": "Activities",
+        "leasing, Retail": "finance,",
+        "HOLDING": "99.9%",
+        "PRINCIPAL ACTIVITY": "investment service",
+        "PRINCIPAL PLACE OF": "Bauddhaloka",
+        "label": "2024"
+      }
+    },
+    {
+      "id": "sub_2_8e00",
+      "label": "| NATIONAL",
+      "type": "subsidiary",
+      "parentNode": "root_group",
+      "data": {
+        "ANNUAL": "| NATIONAL",
+        "NOTES": "THE",
+        "1. 1.1": "INFORMATION",
+        "unknown": "also holds",
+        "In": "new terms Companies subordinated of the",
+        "the the": "principle",
+        "As": "branches",
+        "1.2 The": "activities of the of the",
+        "leasing, Retail": "and credit medium",
+        "HOLDING": "Capital NDB",
+        "PRINCIPAL ACTIVITY": "Full",
+        "PRINCIPAL PLACE OF": "1,135, Level",
+        "BUSINESS": "04",
+        "INCORPORATION COUNTRY": "Lanka Sri",
+        "270": "STATEMENTS",
+        "label": "| NATIONAL"
+      }
+    },
+    {
+      "id": "sub_3_4379",
+      "label": "50%",
+      "type": "subsidiary",
+      "parentNode": "root_group",
+      "data": {
+        "unknown": "50%",
+        "In": "new Act No.",
+        "the the": "place of",
+        "As": "staff",
+        "1.2 The": "Bank Bank and and",
+        "leasing, Retail": "cards, enterprise cash",
+        "HOLDING": "Investment Limited",
+        "PRINCIPAL ACTIVITY": "investment banking service",
+        "PRINCIPAL PLACE OF": "Bauddhaloka Mawatha, 1,135,",
+        "BUSINESS": "Colombo 04",
+        "INCORPORATION COUNTRY": "Lanka",
+        "label": "50%"
+      }
+    },
+    {
+      "id": "sub_4_ca55",
+      "label": "National was",
+      "type": "subsidiary",
+      "parentNode": "root_group",
+      "data": {
+        "unknown": "National was",
+        "1.2 The": "the",
+        "label": "National was"
+      }
+    },
+    {
+      "id": "sub_5_e73d",
+      "label": "DEVELOPMENT",
+      "type": "subsidiary",
+      "parentNode": "root_group",
+      "data": {
+        "ANNUAL": "DEVELOPMENT",
+        "NOTES": "FINANCIAL",
+        "unknown": "shareholding in",
+        "In": "Companies redeemable 7 of 2007, Act,",
+        "the the": "business are",
+        "As": "strength of the",
+        "1.2 The": "its Group Group",
+        "leasing, Retail": "custodian,",
+        "HOLDING": "99.9% NDB Management Wealth",
+        "PRINCIPAL ACTIVITY": "Wealth management",
+        "PRINCIPAL PLACE OF": "Level Bauddhaloka Mawatha, G,",
+        "BUSINESS": "Colombo",
+        "INCORPORATION COUNTRY": "Sri Lanka",
+        "label": "DEVELOPMENT"
+      }
+    },
+    {
+      "id": "sub_6_6fea",
+      "label": "BANK",
+      "type": "subsidiary",
+      "parentNode": "root_group",
+      "data": {
+        "ANNUAL": "BANK",
+        "In": "debentures the on",
+        "the the": "situated",
+        "As": "Bank",
+        "leasing, Retail": "banking,",
+        "PRINCIPAL PLACE OF": "135,",
+        "BUSINESS": "04",
+        "label": "BANK"
+      }
+    },
+    {
+      "id": "sub_7_034a",
+      "label": "PLC",
+      "type": "subsidiary",
+      "parentNode": "root_group",
+      "data": {
+        "ANNUAL": "PLC",
+        "unknown": "Ayojana Fund",
+        "In": "04 name July issued of 2007 the",
+        "the the": "at No.40,",
+        "As": "was as",
+        "1.2 The": "companies are",
+        "leasing, Retail": "investment",
+        "HOLDING": "99.9% NDB Securities",
+        "PRINCIPAL ACTIVITY": "Investment advisory securities",
+        "PRINCIPAL PLACE OF": "Level 2,",
+        "BUSINESS": "Mawatha, Colombo",
+        "INCORPORATION COUNTRY": "Sri Lanka",
+        "label": "PLC"
+      }
+    },
+    {
+      "id": "sub_8_9923",
+      "label": "STATEMENTS",
+      "type": "subsidiary",
+      "parentNode": "root_group",
+      "data": {
+        "NOTES": "STATEMENTS",
+        "unknown": "(Pvt) Limited",
+        "In": "Bank and by the was was Bank",
+        "the the": "Nawam",
+        "As": "follows:",
+        "1.2 The": "summarised",
+        "leasing, Retail": "services and",
+        "PRINCIPAL ACTIVITY": "and",
+        "PRINCIPAL PLACE OF": "135,Bauddhaloka",
+        "BUSINESS": "04",
+        "label": "STATEMENTS"
+      }
+    },
+    {
+      "id": "sub_9_fbf5",
+      "label": "(an",
+      "type": "subsidiary",
+      "parentNode": "root_group",
+      "data": {
+        "unknown": "(an",
+        "In": "assigned changed are listed as",
+        "the the": "Mawatha,",
+        "1.2 The": "below:",
+        "leasing, Retail": "project remittance and",
+        "HOLDING": "58.6% Development Holdings",
+        "PRINCIPAL ACTIVITY": "Property management",
+        "PRINCIPAL PLACE OF": "42, Tower Floor), NDB (2nd Nawam EDB",
+        "BUSINESS": "Mawatha, Colombo 02",
+        "INCORPORATION COUNTRY": "Sri Lanka",
+        "label": "(an"
+      }
+    },
+    {
+      "id": "sub_10_b7e4",
+      "label": "Investment in",
+      "type": "subsidiary",
+      "parentNode": "root_group",
+      "data": {
+        "unknown": "Investment in",
+        "In": "with \u2018National on PQ the 27 as",
+        "the the": "Colombo 02.",
+        "leasing, Retail": "bancassurance.",
+        "HOLDING": "(Pvt) 60% NDB Partners",
+        "PRINCIPAL ACTIVITY": "of equity private",
+        "PRINCIPAL PLACE OF": "Level Bauddhaloka Mawatha,",
+        "BUSINESS": "Colombo",
+        "INCORPORATION COUNTRY": "Sri Lanka",
+        "label": "Investment in"
+      }
+    },
+    {
+      "id": "sub_11_366e",
+      "label": "Associate)",
+      "type": "subsidiary",
+      "parentNode": "root_group",
+      "data": {
+        "unknown": "Associate)",
+        "In": "Colombo Development the new Stock",
+        "leasing, Retail": "margin financing, trading,",
+        "HOLDING": "Zephyr Limited Lanka",
+        "PRINCIPAL ACTIVITY": "funds",
+        "PRINCIPAL PLACE OF": "1,135,",
+        "BUSINESS": "04",
+        "label": "Associate)"
+      }
+    },
+    {
+      "id": "sub_12_1954",
+      "label": "which is under",
+      "type": "subsidiary",
+      "parentNode": "root_group",
+      "data": {
+        "unknown": "which is under",
+        "In": "Registration Exchange. Bank PLC\u2019",
+        "As": "2024",
+        "leasing, Retail": "trade pawning,",
+        "HOLDING": "60% NDB Partners Zephyr",
+        "PRINCIPAL ACTIVITY": "Management of equity private funds",
+        "PRINCIPAL PLACE OF": "IFS Street, Eight Court, Cybercity, Twenty-",
+        "BUSINESS": "Ebene Republic Mauritius 72201, of",
+        "INCORPORATION COUNTRY": "Mauritius",
+        "label": "which is under"
+      }
+    },
+    {
+      "id": "sub_13_c073",
+      "label": "liquidation.",
+      "type": "subsidiary",
+      "parentNode": "root_group",
+      "data": {
+        "unknown": "liquidation.",
+        "In": "Number. (\u2018The The",
+        "leasing, Retail": "finance, treasury,",
+        "HOLDING": "NDB",
+        "PRINCIPAL PLACE OF": "Bank Bilquis (5th 6,",
+        "BUSINESS": "Dhaka",
+        "label": "liquidation."
+      }
+    },
+    {
+      "id": "sub_14_49d1",
+      "label": "Indirect Holding Direct/",
+      "type": "subsidiary",
+      "parentNode": "root_group",
+      "data": {
+        "unknown": "Indirect Holding Direct/",
+        "In": "Registered Bank\u2019). The shares The",
+        "As": "2023",
+        "leasing, Retail": "investment",
+        "HOLDING": "84.2% Limited Capital",
+        "PRINCIPAL ACTIVITY": "Investment banking",
+        "PRINCIPAL PLACE OF": "Gulshan Floor), Tower 2,",
+        "BUSINESS": "Bangladesh 1212,",
+        "INCORPORATION COUNTRY": "Bangladesh",
+        "label": "Indirect Holding Direct/"
+      }
+    },
+    {
+      "id": "sub_15_c86c",
+      "label": "Bank",
+      "type": "subsidiary",
+      "parentNode": "root_group",
+      "data": {
+        "unknown": "Bank",
+        "In": "Office Bank and of was",
+        "leasing, Retail": "underwriting, banking,",
+        "PRINCIPAL PLACE OF": "Plot",
+        "label": "Bank"
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "edge_0",
+      "source": "root_group",
+      "target": "sub_0_0bd8",
+      "label": ""
+    },
+    {
+      "id": "edge_1",
+      "source": "root_group",
+      "target": "sub_1_7df5",
+      "label": ""
+    },
+    {
+      "id": "edge_2",
+      "source": "root_group",
+      "target": "sub_2_8e00",
+      "label": ""
+    },
+    {
+      "id": "edge_3",
+      "source": "root_group",
+      "target": "sub_3_4379",
+      "label": ""
+    },
+    {
+      "id": "edge_4",
+      "source": "root_group",
+      "target": "sub_4_ca55",
+      "label": ""
+    },
+    {
+      "id": "edge_5",
+      "source": "root_group",
+      "target": "sub_5_e73d",
+      "label": ""
+    },
+    {
+      "id": "edge_6",
+      "source": "root_group",
+      "target": "sub_6_6fea",
+      "label": ""
+    },
+    {
+      "id": "edge_7",
+      "source": "root_group",
+      "target": "sub_7_034a",
+      "label": ""
+    },
+    {
+      "id": "edge_8",
+      "source": "root_group",
+      "target": "sub_8_9923",
+      "label": ""
+    },
+    {
+      "id": "edge_9",
+      "source": "root_group",
+      "target": "sub_9_fbf5",
+      "label": ""
+    },
+    {
+      "id": "edge_10",
+      "source": "root_group",
+      "target": "sub_10_b7e4",
+      "label": ""
+    },
+    {
+      "id": "edge_11",
+      "source": "root_group",
+      "target": "sub_11_366e",
+      "label": ""
+    },
+    {
+      "id": "edge_12",
+      "source": "root_group",
+      "target": "sub_12_1954",
+      "label": ""
+    },
+    {
+      "id": "edge_13",
+      "source": "root_group",
+      "target": "sub_13_c073",
+      "label": ""
+    },
+    {
+      "id": "edge_14",
+      "source": "root_group",
+      "target": "sub_14_49d1",
+      "label": ""
+    },
+    {
+      "id": "edge_15",
+      "source": "root_group",
+      "target": "sub_15_c86c",
+      "label": ""
+    }
+  ]
+}

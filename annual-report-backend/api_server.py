@@ -9,6 +9,8 @@ import os
 import sys
 import requests
 import json
+import concurrent.futures
+from dotenv import load_dotenv
 from datetime import datetime
 from pathlib import Path
 import logging
@@ -21,9 +23,13 @@ from datetime import datetime
 import re
 from typing import Optional, Dict, List
 import pdfplumber
+
+# Load environment variables
+load_dotenv()
 from src.extractor.shareholder_extractor import ShareholderExtractor
 from src.locator.toc_detector import TOCDetector
 from src.extractor.table_parser import TableParser
+from src.pipeline.llm_extractor import LLMFinancialExtractor
 
 # Configure logging first
 logging.basicConfig(level=logging.INFO)
@@ -56,6 +62,7 @@ CORS(app)  # Enable CORS for frontend
 
 # Configuration
 RAW_DATA_PATH = Path(__file__).parent / "data" / "raw"
+RAW_IMAGES_PATH = Path(__file__).parent / "data" / "raw_Images"
 DATA_API_URL = os.getenv("DATA_API_URL", "http://localhost:5001/api/data")
 
 def save_to_db(payload):
@@ -83,6 +90,7 @@ IMAGES_PATH.mkdir(parents=True, exist_ok=True)
 shareholder_extractor = ShareholderExtractor()
 toc_detector = TOCDetector()
 table_parser = TableParser()
+llm_extractor = LLMFinancialExtractor()
 
 
 def extract_data_from_selected_pages(pdf_path, pdf_id, selected_pages):
@@ -868,6 +876,175 @@ def update_extracted_data(pdf_id):
             "error": str(e),
             "success": False
         }), 500
+
+
+@app.route('/api/raw-images', methods=['GET'])
+def get_raw_images_structure():
+    """
+    Get the directory structure of data/raw_Images recursively.
+    """
+    try:
+        if not RAW_IMAGES_PATH.exists():
+            return jsonify({"error": "raw_Images directory does not exist"}), 404
+            
+        def build_tree(path):
+            tree = {
+                "name": path.name,
+                "path": str(path.relative_to(RAW_IMAGES_PATH)).replace('\\', '/'),
+                "type": "directory" if path.is_dir() else "file",
+                "children": []
+            }
+            
+            if path.is_dir():
+                for item in path.iterdir():
+                    # Filter out hidden files
+                    if not item.name.startswith('.'):
+                        tree["children"].append(build_tree(item))
+            return tree
+
+        # Build tree starting from root contents (not including the root folder itself as the only node)
+        root_children = []
+        for item in RAW_IMAGES_PATH.iterdir():
+            if not item.name.startswith('.'):
+                root_children.append(build_tree(item))
+                
+        return jsonify(root_children), 200
+
+    except Exception as e:
+        logger.error(f"Error scanning raw_Images: {str(e)}")
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/raw-images/serve', methods=['GET'])
+def serve_raw_image():
+    """
+    Serve a raw image file.
+    Query param: path (relative to raw_Images)
+    """
+    try:
+        relative_path = request.args.get('path')
+        if not relative_path:
+            return jsonify({"error": "Path parameter required"}), 400
+            
+        image_path = RAW_IMAGES_PATH / relative_path
+        if not image_path.exists():
+            return jsonify({"error": "Image not found"}), 404
+            
+        return send_file(str(image_path), mimetype='image/png') # Assuming PNG/JPG, browser handles mimetype sniffing usually fine
+    except Exception as e:
+        logger.error(f"Error serving raw image: {str(e)}")
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/extract-from-image', methods=['POST'])
+def extract_single_image():
+    """
+    Extract financial data from a single raw image using LLM.
+    Body: { "path": "Banking/HNB/2024/page_5.png" }
+    """
+    try:
+        data = request.get_json()
+        relative_path = data.get('path')
+        
+        if not relative_path:
+            return jsonify({"error": "Path required"}), 400
+            
+        image_path = RAW_IMAGES_PATH / relative_path
+        
+        logger.info(f"Triggering LLM extraction for: {image_path}")
+        result = llm_extractor.extract_from_image(str(image_path))
+        
+        # Save result logic (similar to existing)
+        # We need to intuit the save path from the folder structure "Sector/Company/Year"
+        try:
+            path_parts = Path(relative_path).parts
+            if len(path_parts) >= 3:
+                sector = path_parts[0]
+                company = path_parts[1]
+                year = path_parts[2]
+                
+                # Construct output path
+                output_dir = PROCESSED_DATA_PATH / sector / company / year
+                output_dir.mkdir(parents=True, exist_ok=True)
+                
+                filename = f"extracted_{Path(relative_path).stem}.json"
+                output_path = output_dir / filename
+                
+                with open(output_path, 'w', encoding='utf-8') as f:
+                    json.dump(result, f, indent=2, ensure_ascii=False)
+                    
+                result['_output_path'] = str(output_path)
+                result['_saved'] = True
+                
+        except Exception as save_err:
+            logger.warning(f"Could not auto-save result based on path: {save_err}")
+            result['_saved'] = False
+            
+        return jsonify(result), 200
+
+    except Exception as e:
+        logger.error(f"Error in single extraction: {str(e)}")
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/extract-batch', methods=['POST'])
+def extract_batch_images():
+    """
+    Extract data from multiple images in PARALLEL.
+    Body: { "paths": ["path/to/img1.png", "path/to/img2.png"] }
+    """
+    try:
+        data = request.get_json()
+        relative_paths = data.get('paths', [])
+        
+        if not relative_paths:
+            return jsonify({"error": "No paths provided"}), 400
+            
+        logger.info(f"Starting BATCH extraction for {len(relative_paths)} images")
+        
+        results = {}
+        
+        def process_image(rel_path):
+            try:
+                full_path = RAW_IMAGES_PATH / rel_path
+                extraction = llm_extractor.extract_from_image(str(full_path))
+                
+                # Auto-save logic
+                path_parts = Path(rel_path).parts
+                saved_path = None
+                if len(path_parts) >= 3:
+                    sector, company, year = path_parts[0], path_parts[1], path_parts[2]
+                    output_dir = PROCESSED_DATA_PATH / sector / company / year
+                    output_dir.mkdir(parents=True, exist_ok=True)
+                    filename = f"extracted_{Path(rel_path).stem}.json"
+                    saved_path = output_dir / filename
+                    with open(saved_path, 'w', encoding='utf-8') as f:
+                        json.dump(extraction, f, indent=2, ensure_ascii=False)
+                
+                return rel_path, {"status": "success", "data": extraction, "saved_to": str(saved_path) if saved_path else None}
+            except Exception as e:
+                return rel_path, {"status": "error", "error": str(e)}
+
+        # Use ThreadPoolExecutor for parallel processing
+        # Adjust max_workers based on API rate limits or CPU
+        max_workers = min(len(relative_paths), 2) 
+        
+        with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
+            future_to_path = {executor.submit(process_image, path): path for path in relative_paths}
+            
+            for future in concurrent.futures.as_completed(future_to_path):
+                path = future_to_path[future]
+                try:
+                    rel_path, res = future.result()
+                    results[rel_path] = res
+                except Exception as exc:
+                    results[path] = {"status": "error", "error": str(exc)}
+        
+        return jsonify({
+            "summary": f"Processed {len(results)} images",
+            "results": results
+        }), 200
+
+    except Exception as e:
+        logger.error(f"Error in batch extraction: {str(e)}")
+        return jsonify({"error": str(e)}), 500
 
 
 # ============================================================================

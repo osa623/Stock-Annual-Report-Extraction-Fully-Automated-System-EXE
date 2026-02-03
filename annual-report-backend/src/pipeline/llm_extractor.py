@@ -13,6 +13,7 @@ import requests
 import time
 import random
 import threading
+import re
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -66,6 +67,10 @@ If you are uncertain about any row label or a value, keep it as best-effort but 
             self.provider = "openai"
         else:
             self.provider = None
+
+        if self.api_key and self.provider:
+            masked_key = self.api_key[:8] + "..." + self.api_key[-4:]
+            logger.info(f"LLM Initialized with provider: {self.provider}, Key: {masked_key}")
         
         # Enforce sequential execution to avoid rate limits
         self._concurrency_limit = threading.Semaphore(1)
@@ -181,8 +186,10 @@ If you are uncertain about any row label or a value, keep it as best-effort but 
                 raise e
 
     def _call_gemini(self, base64_image: str) -> str:
-        """Call Google Gemini 1.5 Pro API."""
-        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent?key={self.api_key}"
+        """Call Google Gemini Flash API (Latest)."""
+        # Clean the API key in case of whitespace
+        clean_key = self.api_key.strip() if self.api_key else ""
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key={clean_key}"
         
         payload = {
             "contents": [{
@@ -203,19 +210,50 @@ If you are uncertain about any row label or a value, keep it as best-effort but 
             }
         }
         
-        response = requests.post(url, json=payload, headers={'Content-Type': 'application/json'})
-        response.raise_for_status()
-        
-        result = response.json()
-        return result['candidates'][0]['content']['parts'][0]['text']
+        try:
+            response = requests.post(url, json=payload, headers={'Content-Type': 'application/json'})
+            
+            if response.status_code != 200:
+                logger.error(f"Gemini API Error {response.status_code}: {response.text}")
+                response.raise_for_status()
+            
+            result = response.json()
+            return result['candidates'][0]['content']['parts'][0]['text']
+            
+        except requests.exceptions.HTTPError as e:
+            # Re-raise to be caught by the main handler
+            raise e
+        except Exception as e:
+            logger.error(f"Gemini Call Failed: {str(e)}")
+            raise e
 
     def _clean_and_parse_json(self, text: str) -> Dict[str, Any]:
         """Clean markdown fences and parse JSON."""
-        clean_text = text.replace("```json", "").replace("```", "").strip()
         try:
+            # 1. Try to find JSON within code blocks first
+            match = re.search(r"```json\s*(\{.*?\})\s*```", text, re.DOTALL)
+            if not match:
+                match = re.search(r"```\s*(\{.*?\})\s*```", text, re.DOTALL)
+            
+            if match:
+                clean_text = match.group(1)
+            else:
+                # 2. If no code blocks, look for the first { and last }
+                start = text.find('{')
+                end = text.rfind('}')
+                
+                if start != -1 and end != -1:
+                    clean_text = text[start:end+1]
+                else:
+                    clean_text = text.strip()
+
             return json.loads(clean_text)
+            
         except json.JSONDecodeError as e:
-            logger.error(f"Failed to parse JSON response: {text[:100]}...")
+            # Log the problematic text for debugging
+            logger.error(f"JSON Parse Error: {str(e)}")
+            logger.error(f"Raw Text Preview (First 500 chars): {text[:500]}")
+            logger.error(f"Raw Text Preview (Last 500 chars): {text[-500:]}")
             raise e
 
     def _mock_response(self, filename: str) -> Dict[str, Any]:

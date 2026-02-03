@@ -49,8 +49,6 @@ class HeadingScanner:
         self.heading_indicators = [
             r'statement\s+of',
             r'consolidated\s+',
-            r'for\s+the\s+year\s+ended',
-            r'as\s+at.*\d{4}',  # "as at 31 December 2023"
         ]
     
     def is_likely_heading(self, text: str, line_position: str = None) -> float:
@@ -78,6 +76,7 @@ class HeadingScanner:
             r'are presented',
             r'are summarised',
             r'paragraph',
+            r'in us dollors',
             r'section\s+\d+'
         ]
         

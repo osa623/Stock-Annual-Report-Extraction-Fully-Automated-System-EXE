@@ -90,70 +90,115 @@ class PageLocator:
                     toc_results = self.toc_detector.get_statement_pages_from_toc(pdf)
                     for stmt_type, candidates in toc_results.items():
                         all_candidates[stmt_type].extend(candidates)
-                
+                    
+                    # PERFORMANCE OPTIMIZATION: Early Exit if TOC is successful
+                    # If we found high-confidence candidates for ALL statement types, stop here.
+                    toc_success = True
+                    for stmt_type in self.statement_types:
+                        # Check if we have at least one high-confidence candidate
+                        has_high_conf = any(c['confidence'] >= 0.9 for c in all_candidates[stmt_type])
+                        if not has_high_conf:
+                            toc_success = False
+                            break
+                    
+                    if toc_success:
+                        print("  [i] TOC detection successful for all statements. Skipping expensive scanning.")
+                        # Return results immediately
+                        return self._finalize_results(all_candidates, total_pages=total_pages)
+
                 # Strategy 2: Heading Scanning
                 if 'heading' in strategies:
-                    heading_results = self.heading_scanner.scan_pages_for_statements(pdf)
+                    # Optimize: Only scan first 100 pages and last 50 pages if mostly looking for statements
+                    # This avoids scanning 500+ pages of notes
+                    total_pages = len(pdf.pages)
+                    scan_pages = list(range(min(100, total_pages)))
+                    if total_pages > 150:
+                        scan_pages.extend(range(total_pages - 50, total_pages))
+                    
+                    heading_results = self.heading_scanner.scan_pages_for_statements(pdf, page_range=scan_pages)
                     for stmt_type, candidates in heading_results.items():
                         all_candidates[stmt_type].extend(candidates)
+                
                 
                 # Strategy 3: Layout Analysis
                 # (This provides generic candidates, we'll match them later)
                 layout_results = None
                 if 'layout' in strategies:
-                    layout_results = self.layout_analyzer.identify_statement_pages_by_layout(pdf)
+                    # Reuse scan_pages from heading strategy if available, otherwise define it
+                    if 'scan_pages' not in locals():
+                        total_pages = len(pdf.pages)
+                        scan_pages = list(range(min(100, total_pages)))
+                        if total_pages > 150:
+                            scan_pages.extend(range(total_pages - 50, total_pages))
+                            
+                    layout_results = self.layout_analyzer.identify_statement_pages_by_layout(pdf, page_range=scan_pages)
                 
-                # Merge and rank candidates
-                for stmt_type in self.statement_types:
-                    candidates = all_candidates[stmt_type]
-                    
-                    # CRITICAL: If ToC found results with high confidence, ONLY use ToC
-                    # ToC is most reliable, ignore other methods when ToC succeeds
-                    toc_candidates = [c for c in candidates if c.get('source') == 'toc']
-                    if toc_candidates:
-                        # Use ONLY ToC results when available
-                        candidates = toc_candidates
-                        print(f"  [i] Using ToC-based detection for {stmt_type} (most reliable)")
-                    
-                    # Merge overlapping candidates
-                    merged = self._merge_candidates(candidates, total_pages)
-                    
-                    # Boost confidence if layout analysis confirms
-                    if layout_results and 'generic_candidates' in layout_results:
-                        merged = self._boost_with_layout(merged, layout_results['generic_candidates'])
-                    
-                    # PRIORITIZE earlier pages when confidence is similar
-                    # Main statements typically appear in pages 200-350 for banks
-                    for candidate in merged:
-                        page_start = candidate['page_range'][0]
-                        
-                        # Boost if in typical statement range
-                        if 200 <= page_start <= 350:
-                            candidate['confidence'] = min(candidate['confidence'] * 1.1, 0.99)
-                        # Penalize if too late in document (likely appendix/notes)
-                        elif page_start > 350:
-                            candidate['confidence'] *= 0.85
-                    
-                    # Convert to PageLocationResult objects
-                    for candidate in merged:
-                        if candidate['confidence'] >= self.min_confidence:
-                            result = PageLocationResult(
-                                statement_type=stmt_type,
-                                page_range=candidate['page_range'],
-                                confidence=candidate['confidence'],
-                                evidence=candidate.get('evidence_list', [candidate.get('evidence', '')]),
-                                sources=candidate.get('sources', []),
-                                metadata=candidate.get('metadata', {})
-                            )
-                            results[stmt_type].append(result)
-                    
-                    # Sort by confidence (highest first), then by page number (earlier first)
-                    results[stmt_type].sort(key=lambda x: (x.confidence, -x.page_range[0]), reverse=True)
+                # Use the helper to finalize results
+                return self._finalize_results(all_candidates, layout_results, total_pages)
         
         except Exception as e:
             raise RuntimeError(f"Page location failed: {str(e)}")
+    
+    def _finalize_results(
+        self, 
+        all_candidates: Dict[str, List[Dict]], 
+        layout_results: Optional[Dict] = None,
+        total_pages: int = 0
+    ) -> Dict[str, List[PageLocationResult]]:
+        """
+        Finalize candidates by merging, ranking, and converting to result objects.
+        """
+        results = {stmt: [] for stmt in self.statement_types}
         
+        for stmt_type in self.statement_types:
+            candidates = all_candidates[stmt_type]
+            
+            # CRITICAL: If ToC found results with high confidence, ONLY use ToC
+            # ToC is most reliable, ignore other methods when ToC succeeds
+            toc_candidates = [c for c in candidates if c.get('source') == 'toc']
+            if toc_candidates:
+                # Use ONLY ToC results when available
+                candidates = toc_candidates
+                print(f"  [i] Using ToC-based detection for {stmt_type} (most reliable)")
+            
+            # Merge overlapping candidates
+            merged = self._merge_candidates(candidates, total_pages)
+            
+            # Boost confidence if layout analysis confirms
+            if layout_results and 'generic_candidates' in layout_results:
+                merged = self._boost_with_layout(merged, layout_results['generic_candidates'])
+            
+            # PRIORITIZE earlier pages when confidence is similar
+            # Main statements typically appear in pages 200-350 for banks
+            for candidate in merged:
+                page_start = candidate['page_range'][0]
+                
+                # Boost if in typical statement range
+                if 200 <= page_start <= 350:
+                    candidate['confidence'] = min(candidate['confidence'] * 1.1, 0.99)
+                # Penalize if too late in document (likely appendix/notes)
+                elif page_start > 350:
+                    candidate['confidence'] *= 0.85
+            
+            # Convert to PageLocationResult objects
+            for candidate in merged:
+                if candidate['confidence'] >= self.min_confidence:
+                    result = PageLocationResult(
+                        statement_type=stmt_type,
+                        page_range=candidate['page_range'],
+                        confidence=candidate['confidence'],
+                        evidence=candidate.get('evidence_list', [candidate.get('evidence', '')]),
+                        sources=candidate.get('sources', []),
+                        metadata=candidate.get('metadata', {})
+                    )
+                    results[stmt_type].append(result)
+            
+            # Sort by confidence (highest first), then by page number (earlier first)
+            results[stmt_type].sort(key=lambda x: (x.confidence, -x.page_range[0]), reverse=True)
+            
         return results
+        
+
     
     def _merge_candidates(
         self,

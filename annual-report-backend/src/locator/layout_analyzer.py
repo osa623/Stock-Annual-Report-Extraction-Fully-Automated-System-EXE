@@ -288,7 +288,8 @@ class LayoutAnalyzer:
     def identify_statement_pages_by_layout(
         self,
         pdf,
-        min_score: float = 0.6
+        min_score: float = 0.6,
+        page_range: Optional[List[int]] = None
     ) -> Dict[str, List[Dict]]:
         """
         Identify pages that likely contain financial statements based on layout.
@@ -296,12 +297,13 @@ class LayoutAnalyzer:
         Args:
             pdf: pdfplumber PDF object
             min_score: Minimum overall score threshold
+            page_range: Optional list of page numbers to analyze
         
         Returns:
             Dictionary with generic candidates (not statement-specific yet)
         """
-        # Analyze all pages
-        all_signals = self.analyze_page_range(pdf)
+        # Analyze speicifc pages or all pages
+        all_signals = self.analyze_page_range(pdf, page_range=page_range)
         
         # Filter high-scoring pages
         candidate_pages = [

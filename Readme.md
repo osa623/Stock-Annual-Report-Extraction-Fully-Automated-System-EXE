@@ -5,6 +5,14 @@
 
 An intelligent PDF extraction system designed to automatically extract structured financial data from annual reports and financial statements.
 
+## Changes
+
+- Tried Docling, but encountered extraction issues.
+- Tried LlamaParse; extraction was successful as it utilizes an external server but had token limit.
+- Tried PDFPlumber, but it was unable to extract data; switched to PDFmyPDF.
+- Tried DeepSeek-V2 OCR; it is expensive and requires GPU servers to run.
+- Implementing parallel processing instead of sequential processing to reduce total processing time.
+
 ## Features
 
 - **Multi-Format Support**: Handles both text-based and image-based PDFs using OCR

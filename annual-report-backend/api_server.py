@@ -977,6 +977,16 @@ def extract_single_image():
                 with open(output_path, 'w', encoding='utf-8') as f:
                     json.dump(result, f, indent=2, ensure_ascii=False)
                     
+                # DB Update
+                save_to_db({
+                    "sector": sector,
+                    "company": company,
+                    "year": year,
+                    "type": "financial_statements", # or 'extracted_table'
+                    "data": result,
+                    "pdfId": f"{sector}_{company}_{year}" # approximate ID
+                })
+                    
                 result['_output_path'] = str(output_path)
                 result['_saved'] = True
                 
@@ -1047,7 +1057,11 @@ def extract_with_local_ocr(image_path_str):
         # Transform Dict[str, Dict] -> List[Dict] (Frontend Format)
         formatted_rows = []
         if parsed_data:
-            for key, values in parsed_data.items():
+            # POLISHING STEP
+            from src.pipeline.data_polisher import clean_json_data
+            polished_data = clean_json_data(parsed_data)
+            
+            for key, values in polished_data.items():
                 row = {"label": key}
                 row.update(values)
                 formatted_rows.append(row)

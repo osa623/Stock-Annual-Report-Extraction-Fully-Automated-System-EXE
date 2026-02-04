@@ -977,6 +977,18 @@ def extract_single_image():
                 with open(output_path, 'w', encoding='utf-8') as f:
                     json.dump(result, f, indent=2, ensure_ascii=False)
                     
+                # DB Update
+                # Use a specific type "extracted_table" to avoid overwriting the full "financial_statements" report
+                # Also append _OCR to the pdfId to keep it distinct
+                save_to_db({
+                    "sector": sector,
+                    "company": company,
+                    "year": year,
+                    "type": "extracted_table", 
+                    "data": result,
+                    "pdfId": f"{sector}_{company}_{year}_OCR" 
+                })
+                    
                 result['_output_path'] = str(output_path)
                 result['_saved'] = True
                 
@@ -1047,7 +1059,11 @@ def extract_with_local_ocr(image_path_str):
         # Transform Dict[str, Dict] -> List[Dict] (Frontend Format)
         formatted_rows = []
         if parsed_data:
-            for key, values in parsed_data.items():
+            # POLISHING STEP
+            from src.pipeline.data_polisher import clean_json_data
+            polished_data = clean_json_data(parsed_data)
+            
+            for key, values in polished_data.items():
                 row = {"label": key}
                 row.update(values)
                 formatted_rows.append(row)
@@ -1104,8 +1120,22 @@ def extract_batch_images():
                     output_dir.mkdir(parents=True, exist_ok=True)
                     filename = f"extracted_{Path(rel_path).stem}.json"
                     saved_path = output_dir / filename
+                    saved_path = output_dir / filename
                     with open(saved_path, 'w', encoding='utf-8') as f:
                         json.dump(extraction, f, indent=2, ensure_ascii=False)
+                        
+                    # DB Update (critical for "proper folder structure" in UI)
+                    try:
+                        save_to_db({
+                            "sector": sector,
+                            "company": company,
+                            "year": year,
+                            "type": "extracted_table",
+                            "data": extraction,
+                            "pdfId": f"{sector}_{company}_{year}_{Path(rel_path).stem}_OCR"
+                        })
+                    except Exception as db_err:
+                        logger.error(f"Failed to save to DB for {rel_path}: {db_err}")
                 
                 return rel_path, {"status": "success", "data": extraction, "saved_to": str(saved_path) if saved_path else None}
             except Exception as e:
@@ -1113,6 +1143,11 @@ def extract_batch_images():
 
         # Use ThreadPoolExecutor for parallel processing
         max_workers = min(len(relative_paths), 4) # OCR is CPU bound but fast enough, can increase workers
+        
+        aggregated_statements = {}
+        sector = None
+        company = None
+        year = None
         
         with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
             future_to_path = {executor.submit(process_image, path): path for path in relative_paths}
@@ -1122,12 +1157,45 @@ def extract_batch_images():
                 try:
                     rel_path, res = future.result()
                     results[rel_path] = res
+                    
+                    if res.get("status") == "success":
+                         # Capture metadata from the first successful extraction to form the Report Header
+                         # Assuming all images in batch belong to same report
+                         path_parts = Path(rel_path).parts
+                         if len(path_parts) >= 3:
+                             s, c, y = path_parts[0], path_parts[1], path_parts[2]
+                             sector, company, year = s, c, y
+                             
+                             # Use filename as statement key (cash_flow, income, etc)
+                             stmt_type = Path(rel_path).stem
+                             aggregated_statements[stmt_type] = res["data"]
+                             
                 except Exception as exc:
                     results[path] = {"status": "error", "error": str(exc)}
         
+        # FINAL DB SAVE: Aggregate as ONE Report
+        if sector and company and year and aggregated_statements:
+            try:
+                # Construct a consolidated report object
+                report_payload = {
+                    "sector": sector,
+                    "company": company,
+                    "year": year,
+                    "type": "annual_report_ocr", # New type for full report
+                    "data": aggregated_statements, # {"cash_flow": {...}, "income": {...}}
+                    "pdfId": f"{sector}_{company}_{year}_OCR_Combined",
+                    "extraction_date": datetime.now().isoformat()
+                }
+                save_to_db(report_payload)
+                logger.info(f"Saved Consolidated OCR Report to DB: {report_payload['pdfId']}")
+            except Exception as e:
+                logger.error(f"Failed to save consolidated report: {e}")
+
         return jsonify({
-            "summary": f"Processed {len(results)} images",
-            "results": results
+            "message": "Batch extraction complete",
+            "processed": len(results),
+            "results": results,
+            "consolidated_report": aggregated_statements
         }), 200
 
     except Exception as e:

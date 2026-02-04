@@ -211,6 +211,41 @@ export const pdfService = {
       throw error;
     }
   },
+
+  // Raw Image Handling for LLM Extraction
+  getRawImagesStructure: async () => {
+    try {
+      const response = await api.get('/raw-images');
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching raw images structure:', error);
+      throw error;
+    }
+  },
+
+  extractFromImage: async (path) => {
+    try {
+      const response = await api.post('/extract-from-image', { path });
+      return response.data;
+    } catch (error) {
+      console.error('Error extracting from image:', error);
+      throw error;
+    }
+  },
+
+  extractBatch: async (paths) => {
+    try {
+      const response = await api.post('/extract-batch', { paths });
+      return response.data;
+    } catch (error) {
+      console.error('Error in batch extraction:', error);
+      throw error;
+    }
+  },
+
+  getRawImageUrl: (path) => {
+    return `${API_BASE_URL}/raw-images/serve?path=${encodeURIComponent(path)}`;
+  }
 };
 
 export default api;

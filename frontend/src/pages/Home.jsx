@@ -40,6 +40,11 @@ const Home = () => {
             action: () => navigate('/dashboard')
         },
         {
+            title: "Raw Image Extractor",
+            description: "Extract data from raw image inputs",
+            action: () => navigate('/image-extractor')
+        },
+        {
             title: "Quaterly PDF Extractor",
             description: "Automated document data extraction",
             action: () => navigate('/*')

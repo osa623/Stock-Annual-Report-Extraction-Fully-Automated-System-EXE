@@ -21,7 +21,7 @@ import MFAsetupForm from './pages/MFAsetupForm';
 import MFAverifyForm from './pages/MFAverifyForm';
 import Profile from './pages/Profile';
 import DataExplorer from './pages/DataExplorer';
-
+import ImageExtractor from './pages/ImageExtractor';
 import AuthProvider from './utils/AuthContext';
 
 function App() {
@@ -93,6 +93,11 @@ function App() {
             <Route path="/data-explorer" element={
               <ProtectedRoutes>
                 <DataExplorer />
+              </ProtectedRoutes>} />
+
+            <Route path="/image-extractor" element={
+              <ProtectedRoutes>
+                <ImageExtractor />
               </ProtectedRoutes>} />
 
           </Routes>

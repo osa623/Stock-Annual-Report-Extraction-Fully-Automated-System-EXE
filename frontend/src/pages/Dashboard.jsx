@@ -4,6 +4,8 @@ import PDFCard from '../components/PDFCard';
 import Loader from '../components/Loader';
 import ErrorMessage from '../components/ErrorMessage';
 import FolderTree from '../components/FolderTree';
+import { useNavigate } from 'react-router-dom';
+import { HomeIcon } from '@heroicons/react/24/outline';
 
 const Dashboard = () => {
   const [pdfsByCategory, setPdfsByCategory] = useState({});
@@ -12,6 +14,7 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchData();
@@ -113,13 +116,16 @@ const Dashboard = () => {
         <main className="flex-1 overflow-y-auto">
           <div className="container mx-auto px-6 py-8">
             {/* Dashboard Header */}
-            <div className="mb-8">
-              <h1 className="text-4xl font-semibold text-gray-900 mb-2">
-                Financial Data Extractor
+            <div className="mb-8 flex space-x-6">
+              <button onClick={() => navigate('/home')} className="p-2 hover:bg-gray-100 rounded-full transition-colors">
+                <HomeIcon className="w-6 h-6 text-gray-600" />
+              </button>
+              <h1 className="text-4xl flex-col font-semibold text-gray-900 mb-2">
+                Financial Data Extractor              <p className="text-gray-600 text-base">
+                  Manage and extract financial statements from PDFs with AI-powered analysis
+                </p>
               </h1>
-              <p className="text-gray-600 text-base">
-                Manage and extract financial statements from PDFs with AI-powered analysis
-              </p>
+
             </div>
 
             {/* Stats Bar */}

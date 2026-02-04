@@ -46,6 +46,13 @@ def _clean_value(text: str) -> str:
     if not text:
         return text
         
+    # 0. Check for Standalone Dash (Zero in financial terms)
+    # If the text is just horizontal lines, return "-"
+    # " — " or "-" or " - "
+    item_clean = text.strip()
+    if item_clean in ['-', '—', '–', '_']:
+        return "-"
+        
     # Check for Negative Numbers markers BEFORE aggressive strip
     # Tesseract might give: "(123" or "123)" or "_123" or "—123"
     is_negative = False
@@ -72,6 +79,9 @@ def _clean_value(text: str) -> str:
     
     # If content empty, return empty
     if not content:
+        # If we stripped everything but the original had length, maybe it was text?
+        # But for financial columns, purely text entries are usually errors or nil.
+        # "Nil" -> ""
         return ""
     
     # Logic to fix formatting

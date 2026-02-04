@@ -978,13 +978,15 @@ def extract_single_image():
                     json.dump(result, f, indent=2, ensure_ascii=False)
                     
                 # DB Update
+                # Use a specific type "extracted_table" to avoid overwriting the full "financial_statements" report
+                # Also append _OCR to the pdfId to keep it distinct
                 save_to_db({
                     "sector": sector,
                     "company": company,
                     "year": year,
-                    "type": "financial_statements", # or 'extracted_table'
+                    "type": "extracted_table", 
                     "data": result,
-                    "pdfId": f"{sector}_{company}_{year}" # approximate ID
+                    "pdfId": f"{sector}_{company}_{year}_OCR" 
                 })
                     
                 result['_output_path'] = str(output_path)

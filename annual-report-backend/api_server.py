@@ -954,8 +954,9 @@ def extract_single_image():
             
         image_path = RAW_IMAGES_PATH / relative_path
         
-        logger.info(f"Triggering LLM extraction for: {image_path}")
-        result = llm_extractor.extract_from_image(str(image_path))
+        logger.info(f"Triggering Local OCR extraction for: {image_path}")
+        # Switch to Local OCR to avoid Rate Limits
+        result = extract_with_local_ocr(str(image_path))
         
         # Save result logic (similar to existing)
         # We need to intuit the save path from the folder structure "Sector/Company/Year"
@@ -1041,7 +1042,7 @@ def extract_with_local_ocr(image_path_str):
         
         logger.info(f"Forcing Schema for {image_path_str}: {[c.name for c in manual_schema]}")
         
-        parsed_data, schema = table_parser_instance.parse_lines(lines, schema=manual_schema)
+        parsed_data, schema = table_parser_instance.parse_lines(lines, schema=manual_schema, mode="dense")
         
         # Transform Dict[str, Dict] -> List[Dict] (Frontend Format)
         formatted_rows = []

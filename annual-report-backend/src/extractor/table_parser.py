@@ -30,13 +30,14 @@ class TableParser:
     def __init__(self):
         pass
 
-    def parse_lines(self, lines: List[str], schema: Optional[List[ColumnDef]] = None) -> Dict[str, Any]:
+    def parse_lines(self, lines: List[str], schema: Optional[List[ColumnDef]] = None, mode: str = "standard") -> Dict[str, Any]:
         """
         Parse lines of text into structured data.
         
         Args:
             lines: Text lines
-            schema: Optional pre-defined schema (useful for multi-page statements)
+            schema: Optional pre-defined schema
+            mode: "standard" (2+ spaces) or "dense" (1+ space)
         """
         # Filter empty lines
         clean_lines = [line.strip() for line in lines if line.strip()]
@@ -54,13 +55,15 @@ class TableParser:
         logger.info(f"Using schema: {[c.name for c in schema]}")
 
         # 2. Tokenize Content
-        # We split every line by 2+ spaces to handle horizontal layouts
-        # e.g. "Gross Income    100    200" -> ["Gross Income", "100", "200"]
-        # And we flatten this into a single stream of tokens.
         tokens = []
         for line in clean_lines:
-            # Split by 2+ spaces or tabs
-            parts = re.split(r'\s{2,}|\t+', line)
+            if mode == "dense":
+                # Split by SINGLE space (or tabs)
+                parts = re.split(r'\s+', line)
+            else:
+                # Standard: Split by 2+ spaces or tabs
+                parts = re.split(r'\s{2,}|\t+', line)
+                
             for part in parts:
                 p = part.strip()
                 if p:
@@ -141,17 +144,10 @@ class TableParser:
             token = tokens[i]
             
             # Identify Key
-            # Must be text, longer than 3 chars
             if self._is_valid_key(token):
                 key = token
-                # Check if next token is ALSO a key part? (e.g. "Gross", "Income")
-                # Heuristic: if next token is NOT valid key (is number/short) -> current key is complete.
-                # If next token IS valid key -> join them?
-                # Actually, PyMuPDF line splitting might verify this.
-                # But we split by \s{2,}. So "Gross Income" (1 space) stays as one token.
-                # "Gross Income" (2 spaces) becomes two tokens.
-                # We should try to join adjacent text tokens into the Key.
                 
+                # Check adjacent tokens to build full key
                 j = i + 1
                 while j < len(tokens):
                     next_tok = tokens[j]
@@ -174,18 +170,18 @@ class TableParser:
                 while k < len(tokens):
                     val_tok = tokens[k]
                     
-                    # Stop if we hit a new Key (that isn't a value)
+                    # Stop if we hit a new Key (that isn't a likely value garbage)
                     if self._is_valid_key(val_tok):
                          break
                     
                     if self._is_numeric(val_tok):
-                        # Filter small integers (likely percentages or noise)
-                        # User Rule: "Actually evertime these values equals 4 or more than 4 digits"
-                        # We allow dashes, floats (dots), and long integers (>= 4 digits)
                         if self._is_valid_financial_value(val_tok):
                             collected_values.append(val_tok)
                         else:
-                           # Skip "small" numbers like 34, 205, (25)
+                           # Skip "small" numbers like 34, 205, (25) unless they look like Note numbers?
+                           # For strictness, if it's numeric but not "financial" (like note '7'), 
+                           # we might want to capture it if we need a Note.
+                           # But simpler to just skip noise.
                            pass
                     
                     k += 1
@@ -234,8 +230,7 @@ class TableParser:
         True if text looks like a valid financial value (>= 4 digits, or float, or dash).
         Rejects small integers (noise, percentages, note numbers).
         """
-        # Allow dash
-        clean = text.replace('–', '-').strip()
+        clean = text.replace('–', '-').replace('—', '-').strip()
         if clean == '-' or clean == '—': return True
         
         # Allow floats (must contain dot)
@@ -248,36 +243,44 @@ class TableParser:
         digits = re.sub(r'\D', '', text)
         if len(digits) >= 4: return True
         
+        # Handle cases like "(11,951,627)" or "336,638.91" or "_242.4i24o1" (garbage but numeric-ish)
+        if re.search(r'\d', text) and len(digits) >= 3: return True
+        
         return False
 
     def _is_valid_key(self, token: str) -> bool:
         """Check if token is a valid Row Key (Description)."""
         if self._is_numeric(token): return False
-        if len(token) < 2: return False # Allow 2 chars? "Re"
         
-        # Avoid headers (Use strict checks)
+        # Reject generic noise
+        if len(token) < 2: return False 
+        
+        # Reject garbage mixed alphanumeric like "_242.4i24o1" which Tesseract produces
+        # If it has digits and symbols but starts with non-letter... or has >30% digits?
+        digits = re.sub(r'\D', '', token)
+        if len(digits) > 2: return False # Treat as value garbage
+        
         lower = token.lower()
-        # Headers usually are standalone "Bank" or "Group" or "Note"
-        if lower in ["bank", "group", "note", "page", "lkr", "no."]:
+        # Headers usually are standalone
+        if lower in ["bank", "group", "note", "page", "lkr", "no.", "rs"]:
             return False
             
-        # Also check for regex if punctuation is attached like "Note." or "(Bank)"
         if re.match(r'^\(?(bank|group|note|page|lkr|no\.?)\)?$', lower):
             return False
             
-        # Avoid "2024"
         if re.match(r'20\d{2}', token): return False
+        
         return True
 
     def _is_numeric(self, text: str) -> bool:
-        cleaned = text.replace(',', '').replace('(', '').replace(')', '').replace('-', '').replace('.', '').strip()
-        if not cleaned: return False # Empty
-        if cleaned == '–' or text.strip() == '-': return True
-        return cleaned.isdigit()
-
-    def _is_money_value(self, text: str) -> bool:
-        """True if looks like a financial value (large, commas)."""
-        if ',' in text: return True
-        cleaned = text.replace(',', '').replace('(', '').replace(')', '').replace('-', '').replace('.', '').strip()
-        if cleaned.isdigit() and len(cleaned) > 3: return True # > 999
+        """Rough check if token is 'number-like' to decide if it terminates a key."""
+        cleaned = text.replace(',', '').replace('(', '').replace(')', '').replace('-', '').replace('.', '').replace('_', '').strip()
+        if not cleaned: return False
+        if cleaned == '–' or text.strip() == '-' or text.strip() == '—': return True
+        
+        # If it contains digits, it's numeric-ish
+        if any(c.isdigit() for c in cleaned):
+            return True
+            
         return False
+

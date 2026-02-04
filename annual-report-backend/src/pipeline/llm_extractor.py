@@ -103,7 +103,7 @@ If you are uncertain about any row label or a value, keep it as best-effort but 
                     return self._mock_response(image_path.name)
 
                 # 3. Clean and Parse JSON
-                return self._clean_and_parse_json(response_text)
+                return self._clean_and_parse_json(response_text, image_path.name)
 
             except Exception as e:
                 logger.error(f"LLM Extraction failed for {image_path}: {str(e)}")
@@ -148,7 +148,7 @@ If you are uncertain about any row label or a value, keep it as best-effort but 
                 }
             ],
             "temperature": 0.0, # Deterministic outputs
-            "max_tokens": 4096
+            "max_tokens": 16384
         }
         
         max_retries = 5
@@ -189,6 +189,7 @@ If you are uncertain about any row label or a value, keep it as best-effort but 
         """Call Google Gemini Flash API (Latest)."""
         # Clean the API key in case of whitespace
         clean_key = self.api_key.strip() if self.api_key else ""
+        # Reverting to the alias that worked previously (but keeping safety settings)
         url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key={clean_key}"
         
         payload = {
@@ -205,30 +206,70 @@ If you are uncertain about any row label or a value, keep it as best-effort but 
             }],
             "generationConfig": {
                 "temperature": 0.0,
-                "maxOutputTokens": 8192,
+                "maxOutputTokens": 4096,
                 "responseMimeType": "application/json"
-            }
+            },
+            # Disable safety settings to prevent false positives on financial data
+            "safetySettings": [
+                {"category": "HARM_CATEGORY_HARASSMENT", "threshold": "BLOCK_NONE"},
+                {"category": "HARM_CATEGORY_HATE_SPEECH", "threshold": "BLOCK_NONE"},
+                {"category": "HARM_CATEGORY_SEXUALLY_EXPLICIT", "threshold": "BLOCK_NONE"},
+                {"category": "HARM_CATEGORY_DANGEROUS_CONTENT", "threshold": "BLOCK_NONE"}
+            ]
         }
         
-        try:
-            response = requests.post(url, json=payload, headers={'Content-Type': 'application/json'})
-            
-            if response.status_code != 200:
-                logger.error(f"Gemini API Error {response.status_code}: {response.text}")
-                response.raise_for_status()
-            
-            result = response.json()
-            return result['candidates'][0]['content']['parts'][0]['text']
-            
-        except requests.exceptions.HTTPError as e:
-            # Re-raise to be caught by the main handler
-            raise e
-        except Exception as e:
-            logger.error(f"Gemini Call Failed: {str(e)}")
-            raise e
+        max_retries = 5
+        base_delay = 2
 
-    def _clean_and_parse_json(self, text: str) -> Dict[str, Any]:
-        """Clean markdown fences and parse JSON."""
+        for attempt in range(max_retries):
+            try:
+                response = requests.post(url, json=payload, headers={'Content-Type': 'application/json'})
+                
+                # Check for Rate Limit (429) or Server Error (503) to retry
+                if response.status_code in [429, 503]:
+                    if attempt < max_retries - 1:
+                        jitter = random.uniform(0.5, 2.0)
+                        sleep_time = (base_delay * (2 ** attempt)) + jitter
+                        logger.warning(f"Gemini {response.status_code} Error. Retrying in {sleep_time:.2f}s...")
+                        time.sleep(sleep_time)
+                        continue
+                    else:
+                        response.raise_for_status()
+
+                if response.status_code != 200:
+                    logger.error(f"Gemini API Error {response.status_code}: {response.text}")
+                    response.raise_for_status()
+                
+                result = response.json()
+                # Safety check for Gemini response structure
+                candidates = result.get('candidates', [])
+                if not candidates:
+                     raise ValueError(f"Gemini returned no candidates. Full response: {result}")
+                
+                content = candidates[0].get('content', {})
+                parts = content.get('parts', [])
+                
+                if not parts:
+                    # Sometimes safety settings block the content
+                    if "finishReason" in candidates[0]:
+                        reason = candidates[0]["finishReason"]
+                        # If MAX_TOKENS, return what we have (it might be in parts?) 
+                        # usually parts is empty if completely blocked, but check
+                    raise ValueError(f"Gemini returned no content parts (Safety block?). Full response: {result}")
+                    
+                return parts[0]['text']
+                
+            except requests.exceptions.RequestException as e:
+                if attempt < max_retries - 1:
+                    time.sleep(2)
+                    continue
+                raise e
+            except Exception as e:
+                logger.error(f"Gemini Call Failed: {str(e)}")
+                raise e
+
+    def _clean_and_parse_json(self, text: str, context_id: str = "unknown") -> Dict[str, Any]:
+        """Clean markdown fences and parse JSON. Attempts repairs and saves debug logs on failure."""
         try:
             # 1. Try to find JSON within code blocks first
             match = re.search(r"```json\s*(\{.*?\})\s*```", text, re.DOTALL)
@@ -250,11 +291,120 @@ If you are uncertain about any row label or a value, keep it as best-effort but 
             return json.loads(clean_text)
             
         except json.JSONDecodeError as e:
-            # Log the problematic text for debugging
-            logger.error(f"JSON Parse Error: {str(e)}")
-            logger.error(f"Raw Text Preview (First 500 chars): {text[:500]}")
-            logger.error(f"Raw Text Preview (Last 500 chars): {text[-500:]}")
-            raise e
+            logger.warning(f"JSON Parse Error: {str(e)}. Attempting simple repairs...")
+            logger.warning(f"Failed JSON tail (last 500 chars): {clean_text[-500:]}")
+            
+            try:
+                # Attempt 1: Fix missing commas between objects in lists/dicts
+                repaired_text = re.sub(r'}\s*{', '}, {', clean_text)
+                
+                # Attempt 2: Handle Truncated JSON
+                # If the string ends unexpectedly, try to close it
+                normalized_str = repaired_text.strip() # Use repaired version
+                
+                if normalized_str.endswith(','):
+                     normalized_str = normalized_str[:-1]
+                
+                if normalized_str.count('"') % 2 != 0:
+                     normalized_str += '"'
+
+                # Heuristic: If it ends with a key "key": null
+                if re.search(r'"[^"]*"\s*$', normalized_str):
+                     # Check if it is a key
+                     last_quote = normalized_str.rfind('"')
+                     idx = last_quote - 1
+                     while idx >= 0 and normalized_str[idx].isspace():
+                            idx -= 1
+                     if idx >= 0 and normalized_str[idx] in [',', '{']:
+                         normalized_str += ': null'
+                         
+                if normalized_str.rstrip().endswith(':'):
+                     normalized_str += ' null'
+
+                # Balance braces
+                open_braces = normalized_str.count('{')
+                close_braces = normalized_str.count('}')
+                open_brackets = normalized_str.count('[')
+                close_brackets = normalized_str.count(']')
+                
+                while close_braces < open_braces:
+                    normalized_str += '}'
+                    close_braces += 1
+                while close_brackets < open_brackets:
+                    normalized_str += ']'
+                    close_brackets += 1
+                
+                return json.loads(normalized_str)
+            
+            except json.JSONDecodeError as e2:
+                # Attempt 3: Aggressive Salvage - Find the last valid "}," and cut off
+                # This sacrifices the last partial row to save the rest
+                try:
+                    logger.warning("Simple repair failed. Attempting aggressive salvage (dropping partial data)...")
+                    last_valid_comma = clean_text.rfind('},')
+                    if last_valid_comma != -1:
+                        salvaged_text = clean_text[:last_valid_comma+1] # Include '}'
+                        # Now assume we are in a list, close it
+                        # Check context: are we inside "data": [ ... ?
+                        # Just try closing brackets/braces
+                        open_braces = salvaged_text.count('{')
+                        close_braces = salvaged_text.count('}')
+                        open_brackets = salvaged_text.count('[')
+                        close_brackets = salvaged_text.count(']')
+                        
+                        while close_brackets < open_brackets:
+                            salvaged_text += ']'
+                            close_brackets += 1
+                        while close_braces < open_braces:
+                            salvaged_text += '}'
+                            close_braces += 1
+                        
+                        return json.loads(salvaged_text)
+
+                except Exception as salvage_err:
+                     logger.error(f"Aggressive salvage failed: {salvage_err}")
+                     logger.error(f"Salvaged text tail: {salvaged_text[-500:]}")
+
+                # Backup failure handling: Save the raw text to a file for debugging
+                try:
+                    debug_dir = Path("logs/debug_dumps")
+                    debug_dir.mkdir(parents=True, exist_ok=True)
+                    
+                    timestamp = int(time.time())
+                    safe_context = "".join(x for x in context_id if x.isalnum() or x in "-_.")
+                    filename = f"failed_extraction_{safe_context}_{timestamp}.txt"
+                    debug_path = debug_dir / filename
+                    
+                    with open(debug_path, "w", encoding="utf-8") as f:
+                        f.write(text)
+                        
+                    logger.error(f"JSON Repair failed. Raw output saved to: {debug_path}")
+                    
+                except Exception as file_err:
+                    logger.error(f"Could not save debug file: {file_err}")
+
+                # Raise the original error (or the new one) to ensure we don't proceed with bad data
+                raise e
+                # Backup failure handling: Save the raw text to a file for debugging
+                try:
+                    debug_dir = Path("logs/debug_dumps")
+                    debug_dir.mkdir(parents=True, exist_ok=True)
+                    
+                    timestamp = int(time.time())
+                    safe_context = "".join(x for x in context_id if x.isalnum() or x in "-_.")
+                    filename = f"failed_extraction_{safe_context}_{timestamp}.txt"
+                    debug_path = debug_dir / filename
+                    
+                    with open(debug_path, "w", encoding="utf-8") as f:
+                        f.write(text)
+                        
+                    logger.error(f"JSON Repair failed. Raw output saved to: {debug_path}")
+                    
+                except Exception as file_err:
+                    logger.error(f"Could not save debug file: {file_err}")
+
+                # Raise the original error (or the new one) to ensure we don't proceed with bad data
+                raise e
 
     def _mock_response(self, filename: str) -> Dict[str, Any]:
         """Return a mock structure for testing UI flow."""

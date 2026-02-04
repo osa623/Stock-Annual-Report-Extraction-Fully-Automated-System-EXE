@@ -28,7 +28,7 @@ import pdfplumber
 load_dotenv()
 from src.extractor.shareholder_extractor import ShareholderExtractor
 from src.locator.toc_detector import TOCDetector
-from src.extractor.table_parser import TableParser
+from src.extractor.table_parser import TableParser, ColumnDef, ColumnType
 from src.pipeline.llm_extractor import LLMFinancialExtractor
 
 # Configure logging first
@@ -39,7 +39,12 @@ logger = logging.getLogger(__name__)
 try:
     import pytesseract
     TESSERACT_AVAILABLE = True
-    logger.info("Tesseract OCR is available")
+    # Explicitly set path for Windows
+    tesseract_path = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
+    if os.path.exists(tesseract_path):
+        pytesseract.pytesseract.tesseract_cmd = tesseract_path
+    
+    logger.info(f"Tesseract OCR is available (Path: {tesseract_path})")
 except ImportError:
     TESSERACT_AVAILABLE = False
     logger.warning("pytesseract not available, using basic text extraction only")
@@ -984,10 +989,88 @@ def extract_single_image():
         logger.error(f"Error in single extraction: {str(e)}")
         return jsonify({"error": str(e)}), 500
 
+def extract_with_local_ocr(image_path_str):
+    """
+    Extracts financial table data using local Tesseract OCR and TableParser.
+    """
+    try:
+        # Lazy load TableParser
+        global table_parser_instance
+        if 'table_parser_instance' not in globals():
+             table_parser_instance = TableParser()
+             
+        img = Image.open(image_path_str)
+        # psm 3 = Fully automatic page segmentation, but no OSD. (Default)
+        # psm 6 = Single uniform block.
+        # Trying psm 3 as psm 6 failed on layout.
+        text = pytesseract.image_to_string(img, config='--psm 3 -c preserve_interword_spaces=1')
+        
+        lines = text.split('\n')
+        # DEBUG LOGGING for OCR
+        logger.info(f"OCR Head ({image_path_str}): {lines[:10]}")
+        
+        # FIXED SCHEMA STRATEGY (User Request)
+        # Infer year from path "Banking/HNB/2024" -> 2024
+        # Assume Report 2024 contains data for 2023 (Current) and 2022 (Previous)
+        # OR if path is 2024, maybe it means FY 2024?
+        # User image shows "2023 2022" for columns. Path is "2024".
+        # So Report Year = 2024 implies Data = 2023, 2022.
+        
+        report_year = datetime.now().year # Default
+        try:
+             # Find 4-digit year in path
+             path_parts = Path(image_path_str).parts
+             for part in path_parts:
+                 if part.isdigit() and len(part) == 4:
+                     report_year = int(part)
+        except:
+             pass
+             
+        # Construct Schema based on user image:
+        # Layout: Label | Note | Bank 2023 | Bank 2022 | Group 2023 | Group 2022
+        current_fy = report_year - 1
+        prev_fy = report_year - 2
+        
+        manual_schema = [
+            ColumnDef(ColumnType.NOTE, "Note"),
+            ColumnDef(ColumnType.VALUE, f"{current_fy} (Bank)", current_fy, "Bank"),
+            ColumnDef(ColumnType.VALUE, f"{prev_fy} (Bank)", prev_fy, "Bank"),
+            ColumnDef(ColumnType.VALUE, f"{current_fy} (Group)", current_fy, "Group"),
+            ColumnDef(ColumnType.VALUE, f"{prev_fy} (Group)", prev_fy, "Group")
+        ]
+        
+        logger.info(f"Forcing Schema for {image_path_str}: {[c.name for c in manual_schema]}")
+        
+        parsed_data, schema = table_parser_instance.parse_lines(lines, schema=manual_schema)
+        
+        # Transform Dict[str, Dict] -> List[Dict] (Frontend Format)
+        formatted_rows = []
+        if parsed_data:
+            for key, values in parsed_data.items():
+                row = {"label": key}
+                row.update(values)
+                formatted_rows.append(row)
+        
+        # Determine currency unit if possible
+        currency = "Rs '000" if "000" in text else "LKR"
+        
+        return {
+            "statement_name": "Extracted Table (OCR)", 
+            "currency_unit": currency,
+            "data": formatted_rows,
+            "parse_meta": {
+                "method": "local_ocr (tesseract)",
+                "confidence": 0.8
+            }
+        }
+    except Exception as e:
+        logger.error(f"Local OCR Failed for {image_path_str}: {e}")
+        raise e
+
 @app.route('/api/extract-batch', methods=['POST'])
 def extract_batch_images():
     """
-    Extract data from multiple images in PARALLEL.
+    Extract data from multiple images in PARALLEL using Local OCR.
     Body: { "paths": ["path/to/img1.png", "path/to/img2.png"] }
     """
     try:
@@ -997,15 +1080,20 @@ def extract_batch_images():
         if not relative_paths:
             return jsonify({"error": "No paths provided"}), 400
             
-        logger.info(f"Starting BATCH extraction for {len(relative_paths)} images")
+        logger.info(f"Starting BATCH extraction for {len(relative_paths)} images using Local OCR")
         
         results = {}
         
         def process_image(rel_path):
             try:
                 full_path = RAW_IMAGES_PATH / rel_path
-                extraction = llm_extractor.extract_from_image(str(full_path))
                 
+                # PURE OCR STRATEGY (User Request)
+                try:
+                    extraction = extract_with_local_ocr(str(full_path))
+                except Exception as ocr_err:
+                    return rel_path, {"status": "error", "error": f"OCR Failed: {ocr_err}"}
+
                 # Auto-save logic
                 path_parts = Path(rel_path).parts
                 saved_path = None
@@ -1023,8 +1111,7 @@ def extract_batch_images():
                 return rel_path, {"status": "error", "error": str(e)}
 
         # Use ThreadPoolExecutor for parallel processing
-        # Adjust max_workers based on API rate limits or CPU
-        max_workers = min(len(relative_paths), 2) 
+        max_workers = min(len(relative_paths), 4) # OCR is CPU bound but fast enough, can increase workers
         
         with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
             future_to_path = {executor.submit(process_image, path): path for path in relative_paths}

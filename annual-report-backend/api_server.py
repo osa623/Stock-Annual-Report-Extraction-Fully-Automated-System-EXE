@@ -9,6 +9,8 @@ import os
 import sys
 import requests
 import json
+import concurrent.futures
+from dotenv import load_dotenv
 from datetime import datetime
 from pathlib import Path
 import logging
@@ -21,9 +23,13 @@ from datetime import datetime
 import re
 from typing import Optional, Dict, List
 import pdfplumber
+
+# Load environment variables
+load_dotenv()
 from src.extractor.shareholder_extractor import ShareholderExtractor
 from src.locator.toc_detector import TOCDetector
-from src.extractor.table_parser import TableParser
+from src.extractor.table_parser import TableParser, ColumnDef, ColumnType
+from src.pipeline.llm_extractor import LLMFinancialExtractor
 
 # Configure logging first
 logging.basicConfig(level=logging.INFO)
@@ -33,7 +39,12 @@ logger = logging.getLogger(__name__)
 try:
     import pytesseract
     TESSERACT_AVAILABLE = True
-    logger.info("Tesseract OCR is available")
+    # Explicitly set path for Windows
+    tesseract_path = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
+    if os.path.exists(tesseract_path):
+        pytesseract.pytesseract.tesseract_cmd = tesseract_path
+    
+    logger.info(f"Tesseract OCR is available (Path: {tesseract_path})")
 except ImportError:
     TESSERACT_AVAILABLE = False
     logger.warning("pytesseract not available, using basic text extraction only")
@@ -56,6 +67,7 @@ CORS(app)  # Enable CORS for frontend
 
 # Configuration
 RAW_DATA_PATH = Path(__file__).parent / "data" / "raw"
+RAW_IMAGES_PATH = Path(__file__).parent / "data" / "raw_Images"
 DATA_API_URL = os.getenv("DATA_API_URL", "http://localhost:5001/api/data")
 
 def save_to_db(payload):
@@ -83,6 +95,7 @@ IMAGES_PATH.mkdir(parents=True, exist_ok=True)
 shareholder_extractor = ShareholderExtractor()
 toc_detector = TOCDetector()
 table_parser = TableParser()
+llm_extractor = LLMFinancialExtractor()
 
 
 def extract_data_from_selected_pages(pdf_path, pdf_id, selected_pages):
@@ -868,6 +881,258 @@ def update_extracted_data(pdf_id):
             "error": str(e),
             "success": False
         }), 500
+
+
+@app.route('/api/raw-images', methods=['GET'])
+def get_raw_images_structure():
+    """
+    Get the directory structure of data/raw_Images recursively.
+    """
+    try:
+        if not RAW_IMAGES_PATH.exists():
+            return jsonify({"error": "raw_Images directory does not exist"}), 404
+            
+        def build_tree(path):
+            tree = {
+                "name": path.name,
+                "path": str(path.relative_to(RAW_IMAGES_PATH)).replace('\\', '/'),
+                "type": "directory" if path.is_dir() else "file",
+                "children": []
+            }
+            
+            if path.is_dir():
+                for item in path.iterdir():
+                    # Filter out hidden files
+                    if not item.name.startswith('.'):
+                        tree["children"].append(build_tree(item))
+            return tree
+
+        # Build tree starting from root contents (not including the root folder itself as the only node)
+        root_children = []
+        for item in RAW_IMAGES_PATH.iterdir():
+            if not item.name.startswith('.'):
+                root_children.append(build_tree(item))
+                
+        return jsonify(root_children), 200
+
+    except Exception as e:
+        logger.error(f"Error scanning raw_Images: {str(e)}")
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/raw-images/serve', methods=['GET'])
+def serve_raw_image():
+    """
+    Serve a raw image file.
+    Query param: path (relative to raw_Images)
+    """
+    try:
+        relative_path = request.args.get('path')
+        if not relative_path:
+            return jsonify({"error": "Path parameter required"}), 400
+            
+        image_path = RAW_IMAGES_PATH / relative_path
+        if not image_path.exists():
+            return jsonify({"error": "Image not found"}), 404
+            
+        return send_file(str(image_path), mimetype='image/png') # Assuming PNG/JPG, browser handles mimetype sniffing usually fine
+    except Exception as e:
+        logger.error(f"Error serving raw image: {str(e)}")
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/extract-from-image', methods=['POST'])
+def extract_single_image():
+    """
+    Extract financial data from a single raw image using LLM.
+    Body: { "path": "Banking/HNB/2024/page_5.png" }
+    """
+    try:
+        data = request.get_json()
+        relative_path = data.get('path')
+        
+        if not relative_path:
+            return jsonify({"error": "Path required"}), 400
+            
+        image_path = RAW_IMAGES_PATH / relative_path
+        
+        logger.info(f"Triggering Local OCR extraction for: {image_path}")
+        # Switch to Local OCR to avoid Rate Limits
+        result = extract_with_local_ocr(str(image_path))
+        
+        # Save result logic (similar to existing)
+        # We need to intuit the save path from the folder structure "Sector/Company/Year"
+        try:
+            path_parts = Path(relative_path).parts
+            if len(path_parts) >= 3:
+                sector = path_parts[0]
+                company = path_parts[1]
+                year = path_parts[2]
+                
+                # Construct output path
+                output_dir = PROCESSED_DATA_PATH / sector / company / year
+                output_dir.mkdir(parents=True, exist_ok=True)
+                
+                filename = f"extracted_{Path(relative_path).stem}.json"
+                output_path = output_dir / filename
+                
+                with open(output_path, 'w', encoding='utf-8') as f:
+                    json.dump(result, f, indent=2, ensure_ascii=False)
+                    
+                result['_output_path'] = str(output_path)
+                result['_saved'] = True
+                
+        except Exception as save_err:
+            logger.warning(f"Could not auto-save result based on path: {save_err}")
+            result['_saved'] = False
+            
+        return jsonify(result), 200
+
+    except Exception as e:
+        logger.error(f"Error in single extraction: {str(e)}")
+        return jsonify({"error": str(e)}), 500
+
+def extract_with_local_ocr(image_path_str):
+    """
+    Extracts financial table data using local Tesseract OCR and TableParser.
+    """
+    try:
+        # Lazy load TableParser
+        global table_parser_instance
+        if 'table_parser_instance' not in globals():
+             table_parser_instance = TableParser()
+             
+        img = Image.open(image_path_str)
+        # psm 3 = Fully automatic page segmentation, but no OSD. (Default)
+        # psm 6 = Single uniform block.
+        # Trying psm 3 as psm 6 failed on layout.
+        text = pytesseract.image_to_string(img, config='--psm 3 -c preserve_interword_spaces=1')
+        
+        lines = text.split('\n')
+        # DEBUG LOGGING for OCR
+        logger.info(f"OCR Head ({image_path_str}): {lines[:10]}")
+        
+        # FIXED SCHEMA STRATEGY (User Request)
+        # Infer year from path "Banking/HNB/2024" -> 2024
+        # Assume Report 2024 contains data for 2023 (Current) and 2022 (Previous)
+        # OR if path is 2024, maybe it means FY 2024?
+        # User image shows "2023 2022" for columns. Path is "2024".
+        # So Report Year = 2024 implies Data = 2023, 2022.
+        
+        report_year = datetime.now().year # Default
+        try:
+             # Find 4-digit year in path
+             path_parts = Path(image_path_str).parts
+             for part in path_parts:
+                 if part.isdigit() and len(part) == 4:
+                     report_year = int(part)
+        except:
+             pass
+             
+        # Construct Schema based on user image:
+        # Layout: Label | Note | Bank 2023 | Bank 2022 | Group 2023 | Group 2022
+        current_fy = report_year - 1
+        prev_fy = report_year - 2
+        
+        manual_schema = [
+            ColumnDef(ColumnType.NOTE, "Note"),
+            ColumnDef(ColumnType.VALUE, f"{current_fy} (Bank)", current_fy, "Bank"),
+            ColumnDef(ColumnType.VALUE, f"{prev_fy} (Bank)", prev_fy, "Bank"),
+            ColumnDef(ColumnType.VALUE, f"{current_fy} (Group)", current_fy, "Group"),
+            ColumnDef(ColumnType.VALUE, f"{prev_fy} (Group)", prev_fy, "Group")
+        ]
+        
+        logger.info(f"Forcing Schema for {image_path_str}: {[c.name for c in manual_schema]}")
+        
+        parsed_data, schema = table_parser_instance.parse_lines(lines, schema=manual_schema, mode="dense")
+        
+        # Transform Dict[str, Dict] -> List[Dict] (Frontend Format)
+        formatted_rows = []
+        if parsed_data:
+            for key, values in parsed_data.items():
+                row = {"label": key}
+                row.update(values)
+                formatted_rows.append(row)
+        
+        # Determine currency unit if possible
+        currency = "Rs '000" if "000" in text else "LKR"
+        
+        return {
+            "statement_name": "Extracted Table (OCR)", 
+            "currency_unit": currency,
+            "data": formatted_rows,
+            "parse_meta": {
+                "method": "local_ocr (tesseract)",
+                "confidence": 0.8
+            }
+        }
+    except Exception as e:
+        logger.error(f"Local OCR Failed for {image_path_str}: {e}")
+        raise e
+
+@app.route('/api/extract-batch', methods=['POST'])
+def extract_batch_images():
+    """
+    Extract data from multiple images in PARALLEL using Local OCR.
+    Body: { "paths": ["path/to/img1.png", "path/to/img2.png"] }
+    """
+    try:
+        data = request.get_json()
+        relative_paths = data.get('paths', [])
+        
+        if not relative_paths:
+            return jsonify({"error": "No paths provided"}), 400
+            
+        logger.info(f"Starting BATCH extraction for {len(relative_paths)} images using Local OCR")
+        
+        results = {}
+        
+        def process_image(rel_path):
+            try:
+                full_path = RAW_IMAGES_PATH / rel_path
+                
+                # PURE OCR STRATEGY (User Request)
+                try:
+                    extraction = extract_with_local_ocr(str(full_path))
+                except Exception as ocr_err:
+                    return rel_path, {"status": "error", "error": f"OCR Failed: {ocr_err}"}
+
+                # Auto-save logic
+                path_parts = Path(rel_path).parts
+                saved_path = None
+                if len(path_parts) >= 3:
+                    sector, company, year = path_parts[0], path_parts[1], path_parts[2]
+                    output_dir = PROCESSED_DATA_PATH / sector / company / year
+                    output_dir.mkdir(parents=True, exist_ok=True)
+                    filename = f"extracted_{Path(rel_path).stem}.json"
+                    saved_path = output_dir / filename
+                    with open(saved_path, 'w', encoding='utf-8') as f:
+                        json.dump(extraction, f, indent=2, ensure_ascii=False)
+                
+                return rel_path, {"status": "success", "data": extraction, "saved_to": str(saved_path) if saved_path else None}
+            except Exception as e:
+                return rel_path, {"status": "error", "error": str(e)}
+
+        # Use ThreadPoolExecutor for parallel processing
+        max_workers = min(len(relative_paths), 4) # OCR is CPU bound but fast enough, can increase workers
+        
+        with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
+            future_to_path = {executor.submit(process_image, path): path for path in relative_paths}
+            
+            for future in concurrent.futures.as_completed(future_to_path):
+                path = future_to_path[future]
+                try:
+                    rel_path, res = future.result()
+                    results[rel_path] = res
+                except Exception as exc:
+                    results[path] = {"status": "error", "error": str(exc)}
+        
+        return jsonify({
+            "summary": f"Processed {len(results)} images",
+            "results": results
+        }), 200
+
+    except Exception as e:
+        logger.error(f"Error in batch extraction: {str(e)}")
+        return jsonify({"error": str(e)}), 500
 
 
 # ============================================================================

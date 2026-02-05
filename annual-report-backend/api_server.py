@@ -7,6 +7,7 @@ from flask import Flask, jsonify, request, send_file
 from flask_cors import CORS
 import os
 import sys
+import shutil
 import requests
 import json
 import concurrent.futures
@@ -36,15 +37,30 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # Check for Tesseract
+
 try:
     import pytesseract
     TESSERACT_AVAILABLE = True
-    # Explicitly set path for Windows
-    tesseract_path = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
-    if os.path.exists(tesseract_path):
-        pytesseract.pytesseract.tesseract_cmd = tesseract_path
-    
-    logger.info(f"Tesseract OCR is available (Path: {tesseract_path})")
+
+    possible_paths = [
+        shutil.which("tesseract"),
+        r"C:\Program Files\Tesseract-OCR\tesseract.exe",
+        r"D:\stock_app\tess\tesseract.exe"
+    ]
+
+    tesseract_path = None
+    for path in possible_paths:
+        if path and os.path.exists(path):
+            pytesseract.pytesseract.tesseract_cmd = path
+            tesseract_path = path
+            break
+
+    if tesseract_path:
+        logger.info(f"Tesseract OCR is available (Path: {tesseract_path})")
+    else:
+        TESSERACT_AVAILABLE = False
+        logger.warning("Tesseract executable not found, OCR disabled")
+
 except ImportError:
     TESSERACT_AVAILABLE = False
     logger.warning("pytesseract not available, using basic text extraction only")
@@ -1055,8 +1071,8 @@ def extract_with_local_ocr(image_path_str):
              pass
              
         # Construct Schema based on user image:
-        current_fy = report_year - 1
-        prev_fy = report_year - 2
+        current_fy = report_year
+        prev_fy = report_year - 1
         
         manual_schema = [
             ColumnDef(ColumnType.NOTE, "Note"),

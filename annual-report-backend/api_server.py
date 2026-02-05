@@ -1011,17 +1011,32 @@ def extract_with_local_ocr(image_path_str):
         global table_parser_instance
         if 'table_parser_instance' not in globals():
              table_parser_instance = TableParser()
+        
+        # PREPROCESSING STEP (User Request for "full detail/quality")
+        # Enhances resolution and contrast before OCR
+        from src.preprocessing.image_preprocessor import ImagePreprocessor
+        img = ImagePreprocessor.preprocess_for_ocr(image_path_str)
+        
+        # PREPROCESSING STEP (User Request for "full detail/quality")
+        # Enhances resolution and contrast before OCR
+        from src.preprocessing.image_preprocessor import ImagePreprocessor
+        img = ImagePreprocessor.preprocess_for_ocr(image_path_str)
+        
+        # SPATIAL OCR STRATEGY (User Request for "deep details" and "quality")
+        # Instead of getting string and splitting, we pass the image to get coordinates.
+        # This handles column alignment by geometry, not spaces.
+        
+        # Quick Text Check for Entity Detection (Bank vs Company)
+        # PSM 12 = Sparse text with OSD (faster than full layout)
+        try:
+             pre_text = pytesseract.image_to_string(img, config='--psm 12') 
+        except:
+             pre_text = ""
              
-        img = Image.open(image_path_str)
-        # psm 3 = Fully automatic page segmentation, but no OSD. (Default)
-        # psm 6 = Single uniform block.
-        # Trying psm 3 as psm 6 failed on layout.
-        text = pytesseract.image_to_string(img, config='--psm 3 -c preserve_interword_spaces=1')
-        
-        lines = text.split('\n')
-        # DEBUG LOGGING for OCR
-        logger.info(f"OCR Head ({image_path_str}): {lines[:10]}")
-        
+        # DYNAMIC ENTITY DETECTION
+        primary_entity = "Bank" if "bank" in pre_text.lower() else "Company"
+        secondary_entity = "Group"
+
         # FIXED SCHEMA STRATEGY (User Request)
         # Infer year from path "Banking/HNB/2024" -> 2024
         # Assume Report 2024 contains data for 2023 (Current) and 2022 (Previous)
@@ -1040,21 +1055,21 @@ def extract_with_local_ocr(image_path_str):
              pass
              
         # Construct Schema based on user image:
-        # Layout: Label | Note | Bank 2023 | Bank 2022 | Group 2023 | Group 2022
         current_fy = report_year - 1
         prev_fy = report_year - 2
         
         manual_schema = [
             ColumnDef(ColumnType.NOTE, "Note"),
-            ColumnDef(ColumnType.VALUE, f"{current_fy} (Bank)", current_fy, "Bank"),
-            ColumnDef(ColumnType.VALUE, f"{prev_fy} (Bank)", prev_fy, "Bank"),
-            ColumnDef(ColumnType.VALUE, f"{current_fy} (Group)", current_fy, "Group"),
-            ColumnDef(ColumnType.VALUE, f"{prev_fy} (Group)", prev_fy, "Group")
+            ColumnDef(ColumnType.VALUE, f"{current_fy} ({primary_entity})", current_fy, primary_entity),
+            ColumnDef(ColumnType.VALUE, f"{prev_fy} ({primary_entity})", prev_fy, primary_entity),
+            ColumnDef(ColumnType.VALUE, f"{current_fy} ({secondary_entity})", current_fy, secondary_entity),
+            ColumnDef(ColumnType.VALUE, f"{prev_fy} ({secondary_entity})", prev_fy, secondary_entity)
         ]
         
         logger.info(f"Forcing Schema for {image_path_str}: {[c.name for c in manual_schema]}")
         
-        parsed_data, schema = table_parser_instance.parse_lines(lines, schema=manual_schema, mode="dense")
+        # Invoke Spatial Parser with the Schema Hint
+        parsed_data, schema = table_parser_instance.parse_with_spatial_layout(img, schema_hint=manual_schema)
         
         # Transform Dict[str, Dict] -> List[Dict] (Frontend Format)
         formatted_rows = []
@@ -1069,17 +1084,29 @@ def extract_with_local_ocr(image_path_str):
                 formatted_rows.append(row)
         
         # Determine currency unit if possible
-        currency = "Rs '000" if "000" in text else "LKR"
+        currency = "Rs '000" if "000" in pre_text else "LKR"
         
-        return {
+        ocr_result = {
             "statement_name": "Extracted Table (OCR)", 
             "currency_unit": currency,
             "data": formatted_rows,
             "parse_meta": {
-                "method": "local_ocr (tesseract)",
+                "method": "local_ocr_spatial",
                 "confidence": 0.8
             }
         }
+        
+        # HYBRID AI VERIFICATION (User Request for "100% correct")
+        # Send to Gemini Flash to polish/verify
+        from src.pipeline.ai_polisher import AIPolisher
+        # Lazy load polisher
+        global ai_polisher_instance
+        if 'ai_polisher_instance' not in globals():
+             ai_polisher_instance = AIPolisher()
+             
+        final_result = ai_polisher_instance.refine_with_gemini(img, ocr_result)
+        
+        return final_result
     except Exception as e:
         logger.error(f"Local OCR Failed for {image_path_str}: {e}")
         raise e

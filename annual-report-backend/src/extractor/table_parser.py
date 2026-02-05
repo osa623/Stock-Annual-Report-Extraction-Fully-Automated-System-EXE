@@ -97,43 +97,139 @@ class TableParser:
             if re.search(r'\bnote\b', text): has_note = True
             if re.search(r'\bpage\b', text) or re.search(r'\bno\.\b', text): has_page = True
             
-            if "bank" in text: entities.append("Bank")
-            if "group" in text: entities.append("Group")
+    def parse_with_spatial_layout(self, image, schema_hint: List[ColumnDef] = None) -> Dict[str, Any]:
+        """
+        Parses table using Spatial OCR (Coordinates) instead of text lines.
+        Crucial for complex tables where spaces collapse.
+        """
+        import pytesseract
+        from pytesseract import Output
+        import pandas as pd
+        
+        # 1. Get detailed data (transcending just text)
+        # Dictionary keys: 'level', 'page_num', 'block_num', 'par_num', 'line_num', 'word_num', 'left', 'top', 'width', 'height', 'conf', 'text'
+        ocr_data = pytesseract.image_to_data(image, output_type=Output.DICT, config='--psm 3')
+        
+        # Filter empty/low conf
+        df = pd.DataFrame(ocr_data)
+        df = df[df.text.str.strip().astype(bool)] # Remove empty strings
+        df['text'] = df['text'].astype(str)
+        df['left'] = pd.to_numeric(df['left'])
+        df['top'] = pd.to_numeric(df['top'])
+        df['width'] = pd.to_numeric(df['width'])
+        
+        if df.empty:
+            return {}, None
 
-        # Deduplicate Entities (preserve order)
-        seen = set()
-        unique_entities = [x for x in entities if not (x in seen or seen.add(x))]
+        # 2. Cluster Rows (Y-Axis)
+        # Sort by top position
+        df = df.sort_values(by=['top'])
         
-        # Construct Schema
-        schema = []
+        rows = []
+        current_row = []
+        last_top = -100
+        row_height_tolerance = 15 # pixels deviation to separate lines
         
-        if has_note:
-            schema.append(ColumnDef(ColumnType.NOTE, "Note"))
-        if has_page:
-            schema.append(ColumnDef(ColumnType.PAGE, "Page"))
+        for _, word in df.iterrows():
+            if abs(word['top'] - last_top) > row_height_tolerance:
+                 # New Row
+                 if current_row:
+                     rows.append(current_row)
+                 current_row = [word]
+                 last_top = word['top']
+            else:
+                 # Same Row
+                 current_row.append(word)
+                 # Update weighted average top? No, keep simple
+        if current_row:
+            rows.append(current_row)
             
-        if len(years) >= 4:
-            if len(unique_entities) < 2:
-                unique_entities = ["Entity1", "Entity2"]
+        # 3. Detect Columns (X-Axis) based on Header
+        # Find the header row containing "Bank" or "Group" or Years
+        header_row_idx = -1
+        for idx, row in enumerate(rows[:10]):
+            row_text = " ".join([w['text'].lower() for w in row])
+            if "bank" in row_text or "group" in row_text or "20" in row_text:
+                header_row_idx = idx
+                break
+                
+        if header_row_idx == -1:
+             logger.warning("Spatial Parser: No header found. Using default distribution.")
+             # Fallback: Divide Width into 5 chunks? 
+             # Lets use heuristic 60% left = label, rest = 4 columns
+        
+        # Define Column Boundaries (X-Ranges)
+        # Label | Note | C1 | C2 | C3 | C4
+        # We need to find the X-midpoints of the header words
+        
+        # Simplified Spatial Logic:
+        # Just sort each row by X (left)
+        # The first chunk is Label. The rest are values.
+        # But we need to assign them to C1..C4 strictly.
+        
+        data = {}
+        
+        # Let's derive schema from header if possible
+        # Or use the passed hint
+        
+        # Start matching rows
+        for row in rows[header_row_idx+1:]:
+             # Sort words in row by Left
+             row_words = sorted(row, key=lambda x: x['left'])
+             
+             # Reconstruct Line
+             # Identify Label (Leftmost block) vs Values (Right blocks)
+             
+             # Heuristic: Find big gap in X
+             # Label is usually 0 to X_Note
+             
+             # Naive Approach 2.0: 
+             # Concat words until we see a numeric/financial value?
+             
+             label_parts = []
+             values = []
+             
+             for w in row_words:
+                 txt = w['text']
+                 if self._is_valid_financial_value(txt) or self._is_numeric(txt):
+                     # Likely a value column (or Note)
+                     values.append(txt)
+                 else:
+                     label_parts.append(txt)
             
-            # Map based on standard layout (Entity1 Y1, Entity1 Y2, Entity2 Y1, Entity2 Y2)
-            # OR (Entity1, Entity2, Y1, Y2...)
-            # We assume order detected in years list matches column order.
-            
-            schema.append(ColumnDef(ColumnType.VALUE, f"{years[0]} ({unique_entities[0]})", years[0], unique_entities[0]))
-            schema.append(ColumnDef(ColumnType.VALUE, f"{years[1]} ({unique_entities[0]})", years[1], unique_entities[0]))
-            schema.append(ColumnDef(ColumnType.VALUE, f"{years[2]} ({unique_entities[1]})", years[2], unique_entities[1]))
-            schema.append(ColumnDef(ColumnType.VALUE, f"{years[3]} ({unique_entities[1]})", years[3], unique_entities[1]))
-            
-        elif len(years) >= 2:
-            schema.append(ColumnDef(ColumnType.VALUE, str(years[0]), years[0], "Bank"))
-            schema.append(ColumnDef(ColumnType.VALUE, str(years[1]), years[1], "Bank"))
-        else:
-            # Only used if barely anything found
-            schema.append(ColumnDef(ColumnType.VALUE, "Current Year"))
-            schema.append(ColumnDef(ColumnType.VALUE, "Previous Year"))
-            
-        return schema
+             key = " ".join(label_parts).strip()
+             
+             if not key and not values: continue
+             if not key and values: key = "Unlabeled Row" # Or append to previous?
+             
+             # Clean Key
+             if not self._is_valid_key(key):
+                  # Maybe the label was split into multiple lines?
+                  # Ignore for now if garbage
+                  continue
+                  
+             # Map Values to Schema Hint (C1..C4)
+             row_obj = {}
+             # Reuse _map_values_to_schema logic but passing the spatially ordered values
+             if schema_hint:
+                 self._map_values_to_schema(row_obj, schema_hint, values)
+             else:
+                 # Default map
+                 for i, v in enumerate(values):
+                     row_obj[f"Col_{i}"] = v
+                     
+             # Add to Data
+             # Handle duplicate keys
+             orig_key = key
+             k_count = 1
+             while key in data:
+                  key = f"{orig_key}_{k_count}"
+                  k_count += 1
+                  
+             if row_obj:
+                 data[key] = row_obj
+                 
+        return data, schema_hint
 
     def _extract_data_from_tokens(self, tokens: List[str], schema: List[ColumnDef]) -> Dict[str, Any]:
         """Extract data by matching stream of tokens to schema."""
@@ -193,6 +289,13 @@ class TableParser:
                 if collected_values:
                     self._map_values_to_schema(row_data, schema, collected_values)
                     if row_data:
+                        # Handle duplicate keys to avoid overwriting (e.g. "Total")
+                        original_key = key
+                        dup_count = 1
+                        while key in data:
+                            key = f"{original_key}_{dup_count}"
+                            dup_count += 1
+                        
                         data[key] = row_data
                 
                 # Advance main loop to k
@@ -205,48 +308,71 @@ class TableParser:
 
     def _map_values_to_schema(self, row_data: Dict, schema: List[ColumnDef], values: List[str]):
         """
-        Smart mapping of values to schema.
-        Since we pre-filtered small integers (Notes/Pages), we assume 'values' contains only financial data.
-        So we skip NOTE/PAGE columns in the schema and fill the VALUE columns.
+        Map collected values to schema columns.
+        Refactored to include NOTE/PAGE columns and allow imperfect alignment.
         """
+        val_idx = 0
         schema_idx = 0
         
-        for val in values:
-            # Skip NOTE/PAGE columns until we find a VALUE column
-            while schema_idx < len(schema) and schema[schema_idx].col_type in [ColumnType.NOTE, ColumnType.PAGE]:
-                schema_idx += 1
-            
-            if schema_idx >= len(schema):
-                break
-                
+        while val_idx < len(values) and schema_idx < len(schema):
             col_def = schema[schema_idx]
+            val = values[val_idx]
             
-            if col_def.col_type == ColumnType.VALUE:
+            # Simple greedy mapping: Assign current value to current column
+            # We could add smart logic here: e.g. if col is NOTE but val is "100,000", skip NOTE column?
+            # For now, rely on strict order which Tesseract usually preserves.
+            
+            # Heuristic: If Schema asks for NOTE, but Value looks like Money (commas, parens, >999),
+            # then it's proper column alignment mismatch. Skip Note.
+            if col_def.col_type == ColumnType.NOTE:
+                if self._is_looks_like_money(val):
+                    # It's not a note. Skip this schema column.
+                    schema_idx += 1
+                    continue
+                else:
+                    # It fits as a note (small number, or alphanumeric)
+                    row_data[col_def.name] = val
+                    val_idx += 1
+                    schema_idx += 1
+
+            elif col_def.col_type == ColumnType.PAGE:
+                 row_data[col_def.name] = val
+                 val_idx += 1
+                 schema_idx += 1
+                 
+            elif col_def.col_type == ColumnType.VALUE:
                 row_data[col_def.name] = val
+                val_idx += 1
+                schema_idx += 1
+            else:
                 schema_idx += 1
 
+    def _is_looks_like_money(self, text: str) -> bool:
+        """Strong check if text is definitely a financial value, not a note."""
+        clean = text.replace(',', '').replace('.', '').replace('(', '').replace(')', '').strip()
+        # If it has commas or parens, it's money.
+        if ',' in text or '(' in text or ')' in text: return True
+        # If it has > 3 digits, it's money (Notes are usually 1-3 digits)
+        if len(clean) > 3 and clean.isdigit(): return True
+        return False
+        
     def _is_valid_financial_value(self, text: str) -> bool:
         """
-        True if text looks like a valid financial value (>= 4 digits, or float, or dash).
-        Rejects small integers (noise, percentages, note numbers).
+        True if text looks like a valid financial value.
+        RELAXED: Accepts small integers (Notes, EPS, Dividends).
         """
-        clean = text.replace('–', '-').replace('—', '-').strip()
-        if clean == '-' or clean == '—': return True
+        clean = text.strip()
+        if clean in ['-', '–', '—']: return True
         
-        # Allow floats (must contain dot)
-        if '.' in text: return True
+        # Must contain at least one digit
+        if not any(c.isdigit() for c in clean):
+            return False
+            
+        # Reject obvious garbage like "2/3" (dates?), or "FY23"
+        # But EPS can be "36.36", Dividends "8.00". Notes "7".
+        # So really, IF it is numeric, we keep it.
         
-        # Allow commas (implies > 999 usually)
-        if ',' in text: return True
-        
-        # Check digit count
-        digits = re.sub(r'\D', '', text)
-        if len(digits) >= 4: return True
-        
-        # Handle cases like "(11,951,627)" or "336,638.91" or "_242.4i24o1" (garbage but numeric-ish)
-        if re.search(r'\d', text) and len(digits) >= 3: return True
-        
-        return False
+        return True
 
     def _is_valid_key(self, token: str) -> bool:
         """Check if token is a valid Row Key (Description)."""

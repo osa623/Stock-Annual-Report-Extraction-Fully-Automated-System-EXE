@@ -18,15 +18,15 @@ class AIPolisher:
     """
     
     def __init__(self):
-        gemini_key = os.getenv("GEMINI_API_KEY")
+        gemini_key = os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")
         if not gemini_key:
             logger.warning("GEMINI_API_KEY not found. AI Polish will be skipped.")
             self.model = None
         else:
             genai.configure(api_key=gemini_key)
             # Use Gemini 1.5 Flash for speed and cost effectiveness
-            self.model = genai.GenerativeModel('gemini-1.5-flash')
-            logger.info("AIPolisher initialized with gemini-1.5-flash")
+            self.model = genai.GenerativeModel('gemini-flash-latest')
+            logger.info("AIPolisher initialized with gemini-flash-latest")
 
     def refine_with_gemini(self, image: Image.Image, ocr_json: Dict[str, Any]) -> Dict[str, Any]:
         """

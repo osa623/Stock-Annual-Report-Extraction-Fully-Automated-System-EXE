@@ -2,6 +2,7 @@
 import os
 import json
 import logging
+import time
 from typing import Dict, Any, List
 from PIL import Image
 import google.generativeai as genai
@@ -69,7 +70,21 @@ class AIPolisher:
             """
             
             # Pass image and json string
-            response = self.model.generate_content([prompt, image, json.dumps(ocr_json)])
+            max_retries = 3
+            base_delay = 2
+            
+            for attempt in range(max_retries):
+                try:
+                    response = self.model.generate_content([prompt, image, json.dumps(ocr_json)])
+                    break # Success, exit retry loop
+                except Exception as e:
+                    if "504" in str(e) or "Deadline Exceeded" in str(e):
+                        if attempt < max_retries - 1:
+                            sleep_time = base_delay * (2 ** attempt)
+                            logger.warning(f"Gemini 504 Error. Retrying in {sleep_time}s...")
+                            time.sleep(sleep_time)
+                            continue
+                    raise e # Re-raise if not 504 or max retries reached
             
             # Parse response
             raw_text = response.text

@@ -1,7 +1,7 @@
 """OCR configuration for Poppler and Tesseract paths."""
 
 # Tesseract OCR executable path
-TESSERACT_PATH = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
+TESSERACT_PATH =  ( r"D:\stock_app\tess\tesseract.exe" or r"C:\Program Files\Tesseract-OCR\tesseract.exe" )
 
 # Poppler utilities path (for pdf2image)
 # Update this to your actual Poppler installation path

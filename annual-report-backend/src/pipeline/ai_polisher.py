@@ -37,18 +37,35 @@ class AIPolisher:
             
         try:
             prompt = """
-            You are a Financial Data Auditor.
-            1. Analyze the provided financial statement IMAGE.
-            2. Review the provided JSON extracted via OCR.
-            3. CORRECT any typos, missing numbers, or column misalignments in the JSON.
-            4. Ensure the 4-year columns (Bank 2023, Bank 2022, Group 2023, Group 2022) are perfectly aligned with the image.
-            5. Return the cleaned JSON ONLY, no markdown.
+            You are a Financial Data Auditor. Your goal is to produce a **100% accurate** digital representation of the Financial Statement Table in the provided IMAGE.
             
-            Key Rules:
-            - If a number is illegible in OCR but clear in Image, fix it.
-            - If "Note" column is empty in JSON but present in Image, fill it.
-            - Do not change keys/labels unless they are obvious OCR typos.
-            - Output must be strict list of objects under 'data' key.
+            **Input:**
+            1. IMAGE: The ground truth.
+            2. JSON: An OCR extraction that may have typos, missing rows, or wrong years.
+
+            **Your Task:**
+            1. **Verify Headers:** Look at the IMAGE headers. Does the JSON have the correct Years and Entities (e.g., "Group 2024", "Bank 2023")? If not, FIX THE KEYS in the output to match the image exactly.
+            2. **Verify Rows:** Go through every row in the IMAGE. Ensure it exists in the JSON. If missing, ADD IT.
+            3. **Verify Values:** Check every single number.
+               - Fix OCR typos (e.g., 'S' -> '5', 'O' -> '0').
+               - Fix missing decimals or commas.
+               - Ensure values are in the correct column (Note vs Year 1 vs Year 2).
+            4. **Clean Noise:** Remove empty rows or garbage text.
+
+            **Output Format:**
+            Return a SINGLE JSON object with a "data" key, containing a list of row objects.
+            Example:
+            {
+              "data": [
+                {"label": "Revenue", "Note": "3", "2024 (Group)": "100,000", "2023 (Group)": "90,000", ...},
+                ...
+              ]
+            }
+            
+            **Strict Constraints:**
+            - Output JSON ONLY. No markdown, no explanations.
+            - Do not hallucinate. If a value is blank in the image, keep it blank.
+            - The "label" must match the text in the image row.
             """
             
             # Pass image and json string

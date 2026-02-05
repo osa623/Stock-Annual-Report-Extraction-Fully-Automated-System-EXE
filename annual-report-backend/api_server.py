@@ -1071,8 +1071,8 @@ def extract_with_local_ocr(image_path_str):
              pass
              
         # Construct Schema based on user image:
-        current_fy = report_year - 1
-        prev_fy = report_year - 2
+        current_fy = report_year
+        prev_fy = report_year - 1
         
         manual_schema = [
             ColumnDef(ColumnType.NOTE, "Note"),

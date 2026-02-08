@@ -88,6 +88,18 @@ class AIPolisher:
             
             # Parse response
             raw_text = response.text
+            
+            # Extract Token Usage
+            usage_metadata = response.usage_metadata
+            token_counts = {}
+            if usage_metadata:
+                token_counts = {
+                    "prompt_token_count": usage_metadata.prompt_token_count,
+                    "candidates_token_count": usage_metadata.candidates_token_count,
+                    "total_token_count": usage_metadata.total_token_count
+                }
+                logger.info(f"Gemini Token Usage: {token_counts}")
+
             # Remove markdown logic if present
             clean_text = raw_text.replace("```json", "").replace("```", "").strip()
             
@@ -97,6 +109,10 @@ class AIPolisher:
             if isinstance(polished_data, dict):
                  if "parse_meta" not in polished_data: polished_data["parse_meta"] = {}
                  polished_data["parse_meta"]["method"] = "hybrid_gemini_flash"
+                 
+                 # Inject token usage
+                 if token_counts:
+                     polished_data["parse_meta"]["token_usage"] = token_counts
                  
             return polished_data
 

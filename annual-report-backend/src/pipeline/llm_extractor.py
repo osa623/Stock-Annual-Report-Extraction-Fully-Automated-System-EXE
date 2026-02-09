@@ -14,6 +14,8 @@ import time
 import random
 import threading
 import re
+from PIL import Image
+import io
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -113,9 +115,17 @@ If you are uncertain about any row label or a value, keep it as best-effort but 
                 }
 
     def _encode_image(self, image_path: Path) -> str:
-        """Read and encode image to base64."""
-        with open(image_path, "rb") as image_file:
-            return base64.b64encode(image_file.read()).decode('utf-8')
+        """Read, resize if needed, and encode image to base64."""
+        with Image.open(image_path) as img:
+            # OPTIMIZATION: Resize image to max 1536px to prevent 504 Timeouts & Reduce Tokens
+            max_size = 1536
+            if img.width > max_size or img.height > max_size:
+                img.thumbnail((max_size, max_size), Image.Resampling.LANCZOS)
+            
+            # Save to buffer
+            buffered = io.BytesIO()
+            img.save(buffered, format="JPEG", quality=85) # Compress slightly to save bandwidth
+            return base64.b64encode(buffered.getvalue()).decode('utf-8')
 
     def _call_openai(self, base64_image: str) -> str:
         """Call OpenAI GPT-4o API."""

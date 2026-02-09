@@ -37,6 +37,12 @@ class AIPolisher:
             return ocr_json
             
         try:
+            # OPTIMIZATION: Resize image to max 1536px to prevent 504 Timeouts & Reduce Tokens
+            # Financial tables need detail, but 4k+ images are overkill and cause timeouts
+            max_size = 1536
+            if image.width > max_size or image.height > max_size:
+                image.thumbnail((max_size, max_size), Image.Resampling.LANCZOS)
+            
             # OPTIMIZATION: Strip heavy metadata (coordinates, confidence, etc) to save tokens
             simplified_json = self._strip_heavy_metadata(ocr_json)
             
@@ -68,8 +74,8 @@ class AIPolisher:
             """
             
             # Pass image and json string
-            max_retries = 3
-            base_delay = 2
+            max_retries = 6
+            base_delay = 4
             
             for attempt in range(max_retries):
                 try:
@@ -77,12 +83,14 @@ class AIPolisher:
                     response = self.model.generate_content([prompt, image, json.dumps(simplified_json)])
                     break # Success, exit retry loop
                 except Exception as e:
-                    if "504" in str(e) or "Deadline Exceeded" in str(e) or "429" in str(e):
+                    if "504" in str(e) or "Deadline Exceeded" in str(e) or "429" in str(e) or "Resource exhausted" in str(e):
                         if attempt < max_retries - 1:
-                            sleep_time = base_delay * (2 ** attempt)
-                            logger.warning(f"Gemini Error {e}. Retrying in {sleep_time}s...")
+                            sleep_time = (base_delay * (2 ** attempt)) + (attempt * 2) # Exponential backoff: 4, 10, 22, 46...
+                            logger.warning(f"Gemini Rate Limit/Error ({e}). Retrying in {sleep_time}s (Attempt {attempt+1}/{max_retries})...")
                             time.sleep(sleep_time)
                             continue
+                    
+                    logger.error(f"Gemini Non-Retryable Error: {e}")
                     raise e # Re-raise if not retryable or max retries reached
             
             # Parse response

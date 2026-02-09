@@ -25,18 +25,21 @@ class AIPolisher:
             self.model = None
         else:
             genai.configure(api_key=gemini_key)
-            # Use Gemini 2.0 Flash (1.5 not available)
+            # Use Gemini 2.0 Flash (Stable)
             self.model = genai.GenerativeModel('gemini-2.0-flash')
             logger.info("AIPolisher initialized with gemini-2.0-flash")
 
     def refine_with_gemini(self, image: Image.Image, ocr_json: Dict[str, Any]) -> Dict[str, Any]:
         """
-        Sends Image + Partial JSON to Gemini to verify and correct data.
+        Sends Image + Simplified JSON to Gemini to verify and correct data.
         """
         if not self.model:
             return ocr_json
             
         try:
+            # OPTIMIZATION: Strip heavy metadata (coordinates, confidence, etc) to save tokens
+            simplified_json = self._strip_heavy_metadata(ocr_json)
+            
             prompt = """
             You are a Financial Data Auditor. Your goal is to produce a **100% accurate** digital representation of the Financial Statement Table in the provided IMAGE.
             
@@ -50,7 +53,7 @@ class AIPolisher:
             3. **Verify Values:** Check every single number.
                - Fix OCR typos (e.g., 'S' -> '5', 'O' -> '0').
                - Fix missing decimals or commas.
-               - Ensure values are in the correct column (Note vs Year 1 vs Year 2).
+               - Ensure values are in the correct column.
             4. **Clean Noise:** Remove empty rows or garbage text.
 
             **Output Format:**
@@ -58,15 +61,10 @@ class AIPolisher:
             Example:
             {
               "data": [
-                {"label": "Revenue", "Note": "3", "2024 (Group)": "100,000", "2023 (Group)": "90,000", ...},
+                {"label": "Revenue", "Note": "3", "2024 (Group)": "100,000", "2023 (Group)": "90,000"},
                 ...
               ]
             }
-            
-            **Strict Constraints:**
-            - Output JSON ONLY. No markdown, no explanations.
-            - Do not hallucinate. If a value is blank in the image, keep it blank.
-            - The "label" must match the text in the image row.
             """
             
             # Pass image and json string
@@ -75,30 +73,40 @@ class AIPolisher:
             
             for attempt in range(max_retries):
                 try:
-                    response = self.model.generate_content([prompt, image, json.dumps(ocr_json)])
+                    # Send simplified JSON to save tokens
+                    response = self.model.generate_content([prompt, image, json.dumps(simplified_json)])
                     break # Success, exit retry loop
                 except Exception as e:
-                    if "504" in str(e) or "Deadline Exceeded" in str(e):
+                    if "504" in str(e) or "Deadline Exceeded" in str(e) or "429" in str(e):
                         if attempt < max_retries - 1:
                             sleep_time = base_delay * (2 ** attempt)
-                            logger.warning(f"Gemini 504 Error. Retrying in {sleep_time}s...")
+                            logger.warning(f"Gemini Error {e}. Retrying in {sleep_time}s...")
                             time.sleep(sleep_time)
                             continue
-                    raise e # Re-raise if not 504 or max retries reached
+                    raise e # Re-raise if not retryable or max retries reached
             
             # Parse response
             raw_text = response.text
             
-            # Extract Token Usage
-            usage_metadata = response.usage_metadata
+            # Parse response
+            raw_text = response.text
+            
+            # Extract Token Usage (Safely)
             token_counts = {}
-            if usage_metadata:
-                token_counts = {
-                    "prompt_token_count": usage_metadata.prompt_token_count,
-                    "candidates_token_count": usage_metadata.candidates_token_count,
-                    "total_token_count": usage_metadata.total_token_count
-                }
-                logger.info(f"Gemini Token Usage: {token_counts}")
+            try:
+                # Check if attribute exists
+                if hasattr(response, 'usage_metadata'):
+                    usage_metadata = response.usage_metadata
+                    # Check if usage_metadata is not None
+                    if usage_metadata:
+                        token_counts = {
+                            "prompt_token_count": usage_metadata.prompt_token_count,
+                            "candidates_token_count": usage_metadata.candidates_token_count,
+                            "total_token_count": usage_metadata.total_token_count
+                        }
+                        logger.info(f"Gemini Token Usage: {token_counts}")
+            except Exception as usage_err:
+                logger.warning(f"Could not extract token usage: {usage_err}")
 
             # Remove markdown logic if present
             clean_text = raw_text.replace("```json", "").replace("```", "").strip()
@@ -108,7 +116,7 @@ class AIPolisher:
             # Add meta tag
             if isinstance(polished_data, dict):
                  if "parse_meta" not in polished_data: polished_data["parse_meta"] = {}
-                 polished_data["parse_meta"]["method"] = "hybrid_gemini_flash"
+                 polished_data["parse_meta"]["method"] = "hybrid_gemini_flash_lite"
                  
                  # Inject token usage
                  if token_counts:
@@ -120,3 +128,26 @@ class AIPolisher:
             logger.error(f"AI Polish Failed: {e}")
             # Fallback to original OCR data if AI fails
             return ocr_json
+
+    def _strip_heavy_metadata(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Removes unnecessary fields (coordinates, confidence, internal paths) 
+        from the JSON before sending to LLM to reduce token usage.
+        """
+        if not isinstance(data, dict):
+            return data
+            
+        clean_data = {}
+        
+        # Keep only essential fields for correction
+        if "data" in data:
+            clean_data["data"] = data["data"] # The actual rows
+        
+        if "currency_unit" in data:
+            clean_data["currency_unit"] = data["currency_unit"]
+            
+        # If "data" is missing, maybe it's the raw list itself?
+        if "data" not in data and isinstance(data, list):
+             return data
+             
+        return clean_data

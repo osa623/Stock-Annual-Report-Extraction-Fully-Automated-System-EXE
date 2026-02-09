@@ -1185,7 +1185,8 @@ def extract_batch_images():
                 return rel_path, {"status": "error", "error": str(e)}
 
         # Use ThreadPoolExecutor for parallel processing
-        max_workers = min(len(relative_paths), 4) # OCR is CPU bound but fast enough, can increase workers
+        # Reducing max_workers to 2 to avoid hitting Gemini Rate Limits (429)
+        max_workers = min(len(relative_paths), 2) 
         
         aggregated_statements = {}
         sector = None

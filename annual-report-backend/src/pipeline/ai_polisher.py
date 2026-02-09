@@ -25,9 +25,9 @@ class AIPolisher:
             self.model = None
         else:
             genai.configure(api_key=gemini_key)
-            # Use Gemini 1.5 Flash for speed and cost effectiveness
-            self.model = genai.GenerativeModel('gemini-1.5-flash-latest')
-            logger.info("AIPolisher initialized with gemini-1.5-flash-latest")
+            # Use Gemini 2.0 Flash (1.5 not available)
+            self.model = genai.GenerativeModel('gemini-2.0-flash')
+            logger.info("AIPolisher initialized with gemini-2.0-flash")
 
     def refine_with_gemini(self, image: Image.Image, ocr_json: Dict[str, Any]) -> Dict[str, Any]:
         """

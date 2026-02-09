@@ -189,8 +189,8 @@ If you are uncertain about any row label or a value, keep it as best-effort but 
         """Call Google Gemini Flash API (Latest)."""
         # Clean the API key in case of whitespace
         clean_key = self.api_key.strip() if self.api_key else ""
-        # Use explicit Gemini 1.5 Flash model for consistent pricing and token usage
-        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key={clean_key}"
+        # Use Gemini 2.0 Flash as 1.5 is unavailable
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={clean_key}"
         
         payload = {
             "contents": [{

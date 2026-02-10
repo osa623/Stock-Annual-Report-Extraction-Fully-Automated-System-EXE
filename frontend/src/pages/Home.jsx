@@ -23,6 +23,20 @@ const Home = () => {
                 </p>
             </div>
 
+            {/* Overall Statement Extraction */}
+            <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-4">Overall Statement Extraction</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-5">
+
+                <ModuleCard
+                    title="Annual PDF Extractor"
+                    description="Automated extraction of Income Statement, Financial Position, Cash Flow."
+                    icon={DocumentArrowDownIcon}
+                    route="/dashboard"
+                    status="Active"
+                />
+
+            </div>
+
             {/* Financial Statement Extraction */}
             <section>
                 <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-4">Financial Statement Extraction</h2>
@@ -32,13 +46,6 @@ const Home = () => {
                         description="Save and manage extracted financial statement data."
                         icon={CircleStackIcon}
                         route="/data-explorer"
-                        status="Active"
-                    />
-                    <ModuleCard
-                        title="Annual PDF Extractor"
-                        description="Automated extraction of Income Statement, Financial Position, Cash Flow."
-                        icon={DocumentArrowDownIcon}
-                        route="/dashboard"
                         status="Active"
                     />
                     <ModuleCard

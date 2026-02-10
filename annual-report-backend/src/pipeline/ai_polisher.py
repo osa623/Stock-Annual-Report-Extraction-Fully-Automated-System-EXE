@@ -5,7 +5,7 @@ import logging
 import time
 import re
 import ast
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Optional
 from PIL import Image
 import google.generativeai as genai
 from dotenv import load_dotenv
@@ -19,29 +19,28 @@ def clean_json_string(text: str) -> str:
     Cleans common malformations in AI-generated JSON:
     - Trailing commas before } or ]
     - Single quotes instead of double quotes
-    - Unquoted property names
-    - Extra commas
+    - Extra commas, comments
     """
+    # Remove single-line comments (// ...)
+    text = re.sub(r'//.*?$', '', text, flags=re.MULTILINE)
     # Remove trailing commas before closing braces/brackets
     text = re.sub(r',(\s*[}\]])', r'\1', text)
-    
     # Remove multiple consecutive commas
     text = re.sub(r',\s*,', ',', text)
-    
-    # Replace single quotes with double quotes (but be careful with apostrophes in values)
-    # This is a simplified approach - replace ' with " for keys and string values
-    text = re.sub(r"'([^']*)'(\s*:\s*)", r'"\1"\2', text)  # Fix keys with single quotes
-    text = re.sub(r":\s*'([^']*)'", r': "\1"', text)  # Fix values with single quotes
-    
-    # Remove any trailing commas after the last item in arrays/objects (aggressive cleanup)
+    # Replace single-quoted keys with double-quoted
+    text = re.sub(r"'([^']*)'(\s*:\s*)", r'"\1"\2', text)
+    # Replace single-quoted string values with double-quoted
+    text = re.sub(r":\s*'([^']*)'", r': "\1"', text)
+    # Remove any trailing commas after the last item (multiline)
     text = re.sub(r',(\s*\n\s*[}\]])', r'\1', text)
-    
     return text
+
 
 class AIPolisher:
     """
-    Polishes extracted data using Gemini 1.5 Flash Vision.
-    Corrects OCR errors, visual misalignments, and missing values.
+    Polishes extracted OCR data using Gemini 2.0 Flash Vision.
+    Uses the statement IMAGE as ground truth to correct OCR errors,
+    missing rows, misaligned columns, and grammatical label issues.
     """
     
     def __init__(self):
@@ -51,80 +50,81 @@ class AIPolisher:
             self.model = None
         else:
             genai.configure(api_key=gemini_key)
-            # Use Gemini 2.0 Flash (Stable)
             self.model = genai.GenerativeModel('gemini-2.0-flash')
             logger.info("AIPolisher initialized with gemini-2.0-flash")
 
     def refine_with_gemini(self, image: Image.Image, ocr_json: Dict[str, Any]) -> Dict[str, Any]:
         """
-        Sends Image + Simplified JSON to Gemini to verify and correct data.
+        Sends Image + OCR JSON to Gemini to verify, correct, and reformat data.
+        Enforces strict 4-column layout: label + Note + 4 year columns.
         """
         if not self.model:
             return ocr_json
             
         try:
-            # OPTIMIZATION: Resize image to max 1536px to prevent 504 Timeouts & Reduce Tokens
-            # Financial tables need detail, but 4k+ images are overkill and cause timeouts
+            # Resize image to max 1536px to prevent timeouts
             max_size = 1536
             if image.width > max_size or image.height > max_size:
                 image.thumbnail((max_size, max_size), Image.Resampling.LANCZOS)
             
-            # OPTIMIZATION: Strip heavy metadata (coordinates, confidence, etc) to save tokens
+            # Strip heavy metadata to save tokens
             simplified_json = self._strip_heavy_metadata(ocr_json)
             
-            prompt = """
-            You are a Financial Data Auditor. Your PRIMARY SOURCE is the IMAGE. Extract the EXACT data visible in the financial statement table.
+            # Detect the expected column keys from the OCR JSON
+            expected_columns = self._detect_column_keys(ocr_json)
+            columns_instruction = ""
+            if expected_columns:
+                col_list = ', '.join([f'"{c}"' for c in expected_columns])
+                columns_instruction = f"""
+            **MANDATORY COLUMN KEYS (use these EXACT keys for every row):**
+            {col_list}
             
-            **Input:**
-            1. IMAGE: The GROUND TRUTH - this is your primary source
-            2. JSON: A draft OCR extraction (may have errors, use IMAGE to verify)
-
-            **CRITICAL - Table Structure:**
-            Financial statements typically have:
-            - LEFT COLUMN: Statement line item labels (e.g., "Revenue", "Total Assets", "Cash Flow from Operations")
-            - SECOND COLUMN: Note reference numbers (if present)
-            - NEXT 4 COLUMNS: Four numerical data columns, usually in this pattern:
-              * Column 1: Current Year Bank/Company (e.g., "2024 (Bank)" or "2023 (Company)")
-              * Column 2: Previous Year Bank/Company (e.g., "2023 (Bank)" or "2022 (Company)")
-              * Column 3: Current Year Group (e.g., "2024 (Group)")
-              * Column 4: Previous Year Group (e.g., "2023 (Group)")
-
-            **Your Task - BY LOOKING AT THE IMAGE:**
-            1. **Identify Columns:** Look at the IMAGE headers. Extract the EXACT column names as they appear (including year and entity type).
-            2. **Extract ALL Rows:** Go through EVERY row in the IMAGE from top to bottom:
-               - Extract the label (left-most text)
-               - Extract Note number (if present)
-               - Extract ALL FOUR numerical values in their respective columns
-               - If a cell is empty or shows "-" or "—", use empty string ""
-            3. **Verify Each Number:** 
-               - Fix OCR typos: 'S'→'5', 'O'→'0', 'l'→'1', 'I'→'1'
-               - Preserve formatting: keep commas, decimals, parentheses for negatives
-               - Ensure each value is in its CORRECT column
-            4. **Do NOT skip rows** - even if OCR JSON is missing data, YOU must extract it from the IMAGE
-
-            **CRITICAL - Output Format:**
-            Return ONLY valid JSON. No trailing commas. Use double quotes for all keys and strings.
-            Structure: ONE object with "data" array, each row object should have "label" + "Note" + FOUR YEAR COLUMNS.
-            
-            Example for Income Statement:
-            {
-              "data": [
-                {"label": "Interest Income", "Note": "5", "2023 (Bank)": "12,500,000", "2022 (Bank)": "11,200,000", "2023 (Group)": "13,800,000", "2022 (Group)": "12,500,000"},
-                {"label": "Interest Expense", "Note": "6", "2023 (Bank)": "(5,200,000)", "2022 (Bank)": "(4,800,000)", "2023 (Group)": "(5,500,000)", "2022 (Group)": "(5,000,000)"}
-              ]
-            }
-            
-            NO trailing commas. Every row MUST have all columns that exist in the header.
+            Every row object MUST have exactly these keys: "label", "Note", {col_list}
+            Do NOT rename, reorder, or omit any of these column keys.
             """
             
-            # Pass image and json string
+            prompt = f"""You are a Financial Statement Data Extractor. The IMAGE is the GROUND TRUTH.
+
+**TASK:** Look at the financial table IMAGE and produce a perfectly structured JSON extraction.
+
+**STEP 1 — Read the IMAGE column headers:**
+Look at the top of the table in the IMAGE. Identify the 4 data columns.
+They follow this pattern: YEAR (ENTITY) — e.g. "2023 (Bank)", "2022 (Bank)", "2023 (Group)", "2022 (Group)".
+{columns_instruction}
+**STEP 2 — Extract every row from the IMAGE:**
+For EACH row visible in the IMAGE table, from top to bottom:
+- "label": The line item name on the LEFT side (e.g. "Interest Income", "Total Assets").
+  * Fix any spelling or grammar errors in the label.
+  * Use proper English capitalization and financial terminology.
+- "Note": The note reference number (if visible), otherwise "".
+- 4 value columns: Extract the EXACT number from that column position in the IMAGE.
+  * Keep commas and decimal points as shown.
+  * Negative values: use parentheses format "(1,234)" as shown in the image.
+  * Empty cell or dash: use "".
+  * Fix OCR errors: S→5, O→0, l→1, I→1, B→8.
+
+**STEP 3 — Quality checks:**
+- Every row MUST have ALL 6 keys: "label", "Note", and 4 value columns.
+- Do NOT skip any rows, even subtotals or section headers.
+- Do NOT add rows that don't exist in the IMAGE.
+- Ensure each value is in the CORRECT column (match position in the image).
+
+**OUTPUT — Return ONLY this JSON structure:**
+{{
+  "data": [
+    {{"label": "Row Name", "Note": "1", "YYYY (Entity1)": "value", "YYYY-1 (Entity1)": "value", "YYYY (Entity2)": "value", "YYYY-1 (Entity2)": "value"}}
+  ]
+}}
+
+RULES: Valid JSON only. Double quotes only. No trailing commas. No comments."""
+
+            # Retry with exponential backoff for rate limits
             max_retries = 6
-            base_delay = 4
+            base_delay = 8  # Start higher to avoid rapid 429s
             
+            response = None
             for attempt in range(max_retries):
                 try:
-                    # Send simplified JSON to save tokens
-                    # Configure for JSON output mode (Gemini 2.0 Flash supports this)
                     generation_config = {
                         "response_mime_type": "application/json"
                     }
@@ -132,83 +132,213 @@ class AIPolisher:
                         [prompt, image, json.dumps(simplified_json)],
                         generation_config=generation_config
                     )
-                    break # Success, exit retry loop
+                    break
                 except Exception as e:
-                    if "504" in str(e) or "Deadline Exceeded" in str(e) or "429" in str(e) or "Resource exhausted" in str(e):
+                    error_str = str(e)
+                    if any(code in error_str for code in ["504", "Deadline Exceeded", "429", "Resource exhausted"]):
                         if attempt < max_retries - 1:
-                            sleep_time = (base_delay * (2 ** attempt)) + (attempt * 2) # Exponential backoff: 4, 10, 22, 46...
-                            logger.warning(f"Gemini Rate Limit/Error ({e}). Retrying in {sleep_time}s (Attempt {attempt+1}/{max_retries})...")
+                            sleep_time = base_delay * (2 ** attempt)  # 8, 16, 32, 64, 128, 256
+                            logger.warning(f"Gemini Rate Limit ({e}). Retrying in {sleep_time}s (Attempt {attempt+1}/{max_retries})...")
                             time.sleep(sleep_time)
                             continue
-                    
                     logger.error(f"Gemini Non-Retryable Error: {e}")
-                    raise e # Re-raise if not retryable or max retries reached
+                    raise e
             
-            # Parse response
+            if response is None:
+                logger.error("All Gemini retries exhausted. Falling back to OCR data.")
+                return ocr_json
+            
             raw_text = response.text
             
-            # Parse response
-            raw_text = response.text
-            
-            # Extract Token Usage (Safely)
+            # Extract Token Usage
             token_counts = {}
             try:
-                # Check if attribute exists
-                if hasattr(response, 'usage_metadata'):
-                    usage_metadata = response.usage_metadata
-                    # Check if usage_metadata is not None
-                    if usage_metadata:
-                        token_counts = {
-                            "prompt_token_count": usage_metadata.prompt_token_count,
-                            "candidates_token_count": usage_metadata.candidates_token_count,
-                            "total_token_count": usage_metadata.total_token_count
-                        }
-                        logger.info(f"Gemini Token Usage: {token_counts}")
+                if hasattr(response, 'usage_metadata') and response.usage_metadata:
+                    um = response.usage_metadata
+                    token_counts = {
+                        "prompt_token_count": um.prompt_token_count,
+                        "candidates_token_count": um.candidates_token_count,
+                        "total_token_count": um.total_token_count
+                    }
+                    logger.info(f"Gemini Token Usage: {token_counts}")
             except Exception as usage_err:
                 logger.warning(f"Could not extract token usage: {usage_err}")
 
-            # Remove markdown logic if present
+            # Clean and parse JSON
             clean_text = raw_text.replace("```json", "").replace("```", "").strip()
-            
-            # Clean trailing commas (common AI JSON error)
             clean_text = clean_json_string(clean_text)
             
-            try:
-                polished_data = json.loads(clean_text)
-            except json.JSONDecodeError as json_err:
-                logger.error(f"JSON Parse Error: {json_err}")
-                logger.error(f"Problematic JSON context (chars {max(0, json_err.pos-100)}:{json_err.pos+100}):")
-                logger.error(clean_text[max(0, json_err.pos-100):json_err.pos+100])
-                
-                # Try one more aggressive fix: use json5 or eval as last resort
-                try:
-                    # Attempt to fix by removing all comments and fixing common issues
-                    import ast
-                    # Try to evaluate as Python literal (more forgiving)
-                    polished_data = ast.literal_eval(clean_text)
-                except:
-                    logger.error("All JSON parsing attempts failed. Falling back to OCR data.")
-                    return ocr_json
+            polished_data = self._safe_json_parse(clean_text)
+            if polished_data is None:
+                logger.error("JSON parsing failed. Falling back to OCR data.")
+                return ocr_json
             
-            # Add meta tag
+            # POST-PROCESSING: Enforce strict column format
+            if expected_columns:
+                polished_data = self._enforce_column_format(polished_data, expected_columns)
+            
+            # Add metadata
             if isinstance(polished_data, dict):
-                 if "parse_meta" not in polished_data: polished_data["parse_meta"] = {}
-                 polished_data["parse_meta"]["method"] = "hybrid_gemini_flash_lite"
-                 
-                 # Inject token usage
-                 if token_counts:
-                     polished_data["parse_meta"]["token_usage"] = token_counts
+                if "parse_meta" not in polished_data:
+                    polished_data["parse_meta"] = {}
+                polished_data["parse_meta"]["method"] = "hybrid_gemini_flash_lite"
+                if token_counts:
+                    polished_data["parse_meta"]["token_usage"] = token_counts
                  
             return polished_data
 
         except Exception as e:
             logger.error(f"AI Polish Failed: {e}")
-            # Fallback to original OCR data if AI fails
             return ocr_json
+
+    def _safe_json_parse(self, text: str) -> Optional[Dict]:
+        """Try multiple strategies to parse potentially malformed JSON."""
+        # Attempt 1: Standard parse
+        try:
+            return json.loads(text)
+        except json.JSONDecodeError as e:
+            logger.warning(f"JSON parse attempt 1 failed: {e}")
+        
+        # Attempt 2: Fix and retry
+        try:
+            fixed = clean_json_string(text)
+            return json.loads(fixed)
+        except json.JSONDecodeError as e:
+            logger.warning(f"JSON parse attempt 2 failed: {e}")
+            logger.debug(f"Context around error: ...{text[max(0,e.pos-80):e.pos+80]}...")
+        
+        # Attempt 3: Python literal eval (handles single quotes, trailing commas)
+        try:
+            return ast.literal_eval(text)
+        except Exception as e:
+            logger.warning(f"JSON parse attempt 3 (literal_eval) failed: {e}")
+        
+        # Attempt 4: Extract just the data array if we can find it
+        try:
+            match = re.search(r'"data"\s*:\s*\[', text)
+            if match:
+                start = text.rfind('{', 0, match.start())
+                if start == -1:
+                    start = 0
+                # Find matching end
+                depth = 0
+                end = start
+                for i in range(start, len(text)):
+                    if text[i] == '{':
+                        depth += 1
+                    elif text[i] == '}':
+                        depth -= 1
+                        if depth == 0:
+                            end = i + 1
+                            break
+                subset = text[start:end]
+                subset = clean_json_string(subset)
+                return json.loads(subset)
+        except Exception as e:
+            logger.warning(f"JSON parse attempt 4 (extract data) failed: {e}")
+        
+        return None
+
+    def _detect_column_keys(self, ocr_json: Dict[str, Any]) -> List[str]:
+        """
+        Detect the expected year/entity column keys from the OCR JSON data.
+        Returns list like: ['2023 (Bank)', '2022 (Bank)', '2023 (Group)', '2022 (Group)']
+        """
+        columns = []
+        if not isinstance(ocr_json, dict):
+            return columns
+            
+        data = ocr_json.get("data", [])
+        if not data or not isinstance(data, list):
+            return columns
+        
+        # Scan first few rows to find all year-entity keys
+        skip_keys = {"label", "Note", "note", "parse_meta"}
+        seen = set()
+        for row in data[:10]:  # Check first 10 rows
+            if isinstance(row, dict):
+                for key in row.keys():
+                    if key not in skip_keys and key not in seen:
+                        # Check if it looks like a year column: "YYYY (Entity)"
+                        if re.match(r'\d{4}\s*\(', key):
+                            seen.add(key)
+                            columns.append(key)
+        
+        # Sort: current year first, then by entity
+        columns.sort(key=lambda x: (
+            -int(re.search(r'\d{4}', x).group()),  # Year descending
+            0 if 'bank' in x.lower() or 'company' in x.lower() else 1  # Bank/Company before Group
+        ))
+        
+        if columns:
+            logger.info(f"Detected schema columns: {columns}")
+        return columns
+
+    def _enforce_column_format(self, data: Dict[str, Any], expected_columns: List[str]) -> Dict[str, Any]:
+        """
+        Post-process Gemini output to ensure every row has exactly the expected columns.
+        Fixes column key mismatches and ensures consistency.
+        """
+        if not isinstance(data, dict) or "data" not in data:
+            return data
+            
+        rows = data.get("data", [])
+        if not isinstance(rows, list):
+            return data
+        
+        fixed_rows = []
+        for row in rows:
+            if not isinstance(row, dict):
+                continue
+            
+            fixed_row = {
+                "label": row.get("label", "").strip(),
+                "Note": str(row.get("Note", row.get("note", ""))).strip()
+            }
+            
+            # Skip empty label rows
+            if not fixed_row["label"]:
+                continue
+            
+            # Map each expected column
+            for col in expected_columns:
+                if col in row:
+                    fixed_row[col] = str(row[col]).strip() if row[col] is not None else ""
+                else:
+                    # Try to find a similar key (Gemini may have reformatted slightly)
+                    matched = self._fuzzy_match_column(col, row)
+                    fixed_row[col] = str(matched).strip() if matched is not None else ""
+            
+            fixed_rows.append(fixed_row)
+        
+        data["data"] = fixed_rows
+        logger.info(f"Format enforced: {len(fixed_rows)} rows, {len(expected_columns)} value columns each")
+        return data
+    
+    def _fuzzy_match_column(self, expected_key: str, row: Dict) -> Optional[str]:
+        """
+        Try to fuzzy-match a column key from the row to the expected key.
+        Handles cases like Gemini returning '2023(Bank)' instead of '2023 (Bank)'.
+        """
+        # Extract year and entity from expected key
+        match = re.match(r'(\d{4})\s*\((\w+)\)', expected_key)
+        if not match:
+            return None
+        
+        year, entity = match.group(1), match.group(2).lower()
+        
+        for key, value in row.items():
+            if key in ("label", "Note", "note"):
+                continue
+            key_lower = key.lower()
+            if year in key and entity in key_lower:
+                return value
+        
+        return None
 
     def _strip_heavy_metadata(self, data: Dict[str, Any]) -> Dict[str, Any]:
         """
-        Removes unnecessary fields (coordinates, confidence, internal paths) 
+        Removes unnecessary fields (coordinates, confidence, internal paths)
         from the JSON before sending to LLM to reduce token usage.
         """
         if not isinstance(data, dict):
@@ -216,15 +346,13 @@ class AIPolisher:
             
         clean_data = {}
         
-        # Keep only essential fields for correction
         if "data" in data:
-            clean_data["data"] = data["data"] # The actual rows
+            clean_data["data"] = data["data"]
         
         if "currency_unit" in data:
             clean_data["currency_unit"] = data["currency_unit"]
             
-        # If "data" is missing, maybe it's the raw list itself?
         if "data" not in data and isinstance(data, list):
-             return data
+            return data
              
         return clean_data

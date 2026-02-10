@@ -34,7 +34,7 @@ class AIPolisher:
     """
 
     # Refresh the Gemini model instance every N requests to prevent stale connections
-    MAX_REQUESTS_BEFORE_REFRESH = 9  # ~3 batches of 3 images
+    MAX_REQUESTS_BEFORE_REFRESH = 3  # Refresh after every batch (3 images)
 
     def __init__(self):
         self._api_key = os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")
@@ -53,13 +53,19 @@ class AIPolisher:
         self._request_count = 0
         logger.info("AIPolisher: Fresh gemini-2.0-flash model initialized")
 
+    def force_refresh(self):
+        """Force a full model refresh. Call this after each batch completes."""
+        logger.info(f"AIPolisher: Force refreshing model (processed {self._request_count} requests since last refresh)")
+        self._init_model()
+        gc.collect()
+
     def _maybe_refresh_model(self):
         """Refresh the model if request count exceeds threshold."""
         self._request_count += 1
         if self._request_count >= self.MAX_REQUESTS_BEFORE_REFRESH:
-            logger.info(f"AIPolisher: Refreshing model after {self._request_count} requests")
+            logger.info(f"AIPolisher: Auto-refreshing model after {self._request_count} requests")
             self._init_model()
-            gc.collect()  # Force garbage collection to free old connections/images
+            gc.collect()
 
     def refine_with_gemini(self, image: Image.Image, ocr_json: Dict[str, Any]) -> Dict[str, Any]:
         """

@@ -1242,6 +1242,15 @@ def extract_batch_images():
             except Exception as e:
                 logger.error(f"Failed to save consolidated report: {e}")
 
+        # Force refresh the AI polisher after each batch to prevent session degradation
+        try:
+            global ai_polisher_instance
+            if 'ai_polisher_instance' in globals() and ai_polisher_instance is not None:
+                ai_polisher_instance.force_refresh()
+                logger.info("AI Polisher refreshed after batch completion")
+        except Exception as refresh_err:
+            logger.warning(f"Failed to refresh AI polisher: {refresh_err}")
+
         return jsonify({
             "message": "Batch extraction complete",
             "processed": len(results),

@@ -19,9 +19,43 @@ The extraction engine has evolved through multiple iterations to achieve maximum
 ## Current Tech Stack
 
 ### Frontend
--   **React.js**: Responsive dashboard for managing reports.
--   **Tailwind CSS**: Modern UI styling with glassmorphism effects.
+-   **React.js**: Responsive admin dashboard with sidebar navigation and modular page layout.
+-   **Tailwind CSS**: Modern enterprise UI — monochrome palette, rounded cards, responsive sidebar with mobile hamburger collapse.
+-   **React Router v6**: Client-side routing with protected routes and a shared `DashboardLayout` (sidebar + top bar).
 -   **Recharts**: Interactive data visualization.
+
+
+#### Extraction Modules
+
+**Financial Statement Extraction (existing)**
+| Module | Description | Status |
+|---|---|---|
+| PDF Data Handler | Save/view extracted Income Statement, Financial Position, Cash Flow | Active |
+| Annual PDF Extractor | Automated extraction from annual report PDFs | Active |
+| Raw Image Extractor | OCR extraction from raw statement images | Active |
+| Quarterly PDF Extractor | Extraction from interim report PDFs | Coming Soon |
+
+**Report Data Extraction (new — frontend UI)**
+| Section | Category |
+|---|---|
+| Chairman's Review | Leadership Reports |
+| Managing Director's Report | Leadership Reports |
+| Management Discussion & Analysis | Leadership Reports |
+| Corporate Governance | Governance & Risk |
+| Risk Management | Governance & Risk |
+| Audit / Risk Committee Report | Governance & Risk |
+| Remuneration Committee Report | Governance & Risk |
+| Related Party Transactions Review Committee Report | Governance & Risk |
+| Board of Directors | Company Information |
+| Independent Auditor's Report | Financial Reports |
+| Statement of Value Added | Financial Reports |
+| Ten-Year Statistical Summary | Financial Reports |
+| Investor Information | Company Information |
+| CSR / Sustainability | Company Information |
+
+Each report section page provides:
+- **Extract tab**: PDF dropzone, optional page range, extraction trigger with status badge
+- **View tab**: Sortable data table, detail slide-over drawer, JSON/CSV export
 
 ### Backend (Node.js)
 -   **Express.js**: RESTful API for file management and data serving.

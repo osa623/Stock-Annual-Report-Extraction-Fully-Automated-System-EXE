@@ -10,6 +10,7 @@ import sys
 import shutil
 import requests
 import json
+import time
 import concurrent.futures
 from dotenv import load_dotenv
 from datetime import datetime
@@ -1184,9 +1185,8 @@ def extract_batch_images():
             except Exception as e:
                 return rel_path, {"status": "error", "error": str(e)}
 
-        # Use ThreadPoolExecutor for parallel processing
-        # Sequential processing (max_workers=1) to avoid Gemini 429 Rate Limits
-        # Each image uses ~6,500-9,000 tokens; sequential keeps us under 15 RPM
+        # Use ThreadPoolExecutor for processing
+        # Sequential (max_workers=1) to avoid Gemini 429 Rate Limits
         max_workers = 1
         
         aggregated_statements = {}
@@ -1207,8 +1207,7 @@ def extract_batch_images():
                     
                     # Add delay between images to avoid Gemini 429 rate limits
                     if completed_count < len(relative_paths):
-                        import time as _time
-                        _time.sleep(3)  # 3s gap between Gemini calls
+                        time.sleep(3)
                     
                     if res.get("status") == "success":
                          # Capture metadata from the first successful extraction to form the Report Header

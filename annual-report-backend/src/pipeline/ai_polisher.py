@@ -73,33 +73,48 @@ class AIPolisher:
             simplified_json = self._strip_heavy_metadata(ocr_json)
             
             prompt = """
-            You are a Financial Data Auditor. Your goal is to produce a **100% accurate** digital representation of the Financial Statement Table in the provided IMAGE.
+            You are a Financial Data Auditor. Your PRIMARY SOURCE is the IMAGE. Extract the EXACT data visible in the financial statement table.
             
             **Input:**
-            1. IMAGE: The ground truth.
-            2. JSON: An OCR extraction that may have typos, missing rows, or wrong years.
+            1. IMAGE: The GROUND TRUTH - this is your primary source
+            2. JSON: A draft OCR extraction (may have errors, use IMAGE to verify)
 
-            **Your Task:**
-            1. **Verify Headers:** Look at the IMAGE headers. Does the JSON have the correct Years and Entities (e.g., "Group 2024", "Bank 2023")? If not, FIX THE KEYS in the output to match the image exactly.
-            2. **Verify Rows:** Go through every row in the IMAGE. Ensure it exists in the JSON. If missing, ADD IT.
-            3. **Verify Values:** Check every single number.
-               - Fix OCR typos (e.g., 'S' -> '5', 'O' -> '0').
-               - Fix missing decimals or commas.
-               - Ensure values are in the correct column.
-            4. **Clean Noise:** Remove empty rows or garbage text.
+            **CRITICAL - Table Structure:**
+            Financial statements typically have:
+            - LEFT COLUMN: Statement line item labels (e.g., "Revenue", "Total Assets", "Cash Flow from Operations")
+            - SECOND COLUMN: Note reference numbers (if present)
+            - NEXT 4 COLUMNS: Four numerical data columns, usually in this pattern:
+              * Column 1: Current Year Bank/Company (e.g., "2024 (Bank)" or "2023 (Company)")
+              * Column 2: Previous Year Bank/Company (e.g., "2023 (Bank)" or "2022 (Company)")
+              * Column 3: Current Year Group (e.g., "2024 (Group)")
+              * Column 4: Previous Year Group (e.g., "2023 (Group)")
+
+            **Your Task - BY LOOKING AT THE IMAGE:**
+            1. **Identify Columns:** Look at the IMAGE headers. Extract the EXACT column names as they appear (including year and entity type).
+            2. **Extract ALL Rows:** Go through EVERY row in the IMAGE from top to bottom:
+               - Extract the label (left-most text)
+               - Extract Note number (if present)
+               - Extract ALL FOUR numerical values in their respective columns
+               - If a cell is empty or shows "-" or "—", use empty string ""
+            3. **Verify Each Number:** 
+               - Fix OCR typos: 'S'→'5', 'O'→'0', 'l'→'1', 'I'→'1'
+               - Preserve formatting: keep commas, decimals, parentheses for negatives
+               - Ensure each value is in its CORRECT column
+            4. **Do NOT skip rows** - even if OCR JSON is missing data, YOU must extract it from the IMAGE
 
             **CRITICAL - Output Format:**
             Return ONLY valid JSON. No trailing commas. Use double quotes for all keys and strings.
-            Return a SINGLE JSON object with a "data" key, containing a list of row objects.
+            Structure: ONE object with "data" array, each row object should have "label" + "Note" + FOUR YEAR COLUMNS.
             
-            VALID Example:
+            Example for Income Statement:
             {
               "data": [
-                {"label": "Revenue", "Note": "3", "2024 (Group)": "100,000", "2023 (Group)": "90,000"}
+                {"label": "Interest Income", "Note": "5", "2023 (Bank)": "12,500,000", "2022 (Bank)": "11,200,000", "2023 (Group)": "13,800,000", "2022 (Group)": "12,500,000"},
+                {"label": "Interest Expense", "Note": "6", "2023 (Bank)": "(5,200,000)", "2022 (Bank)": "(4,800,000)", "2023 (Group)": "(5,500,000)", "2022 (Group)": "(5,000,000)"}
               ]
             }
             
-            Do NOT include trailing commas after the last item in arrays or objects.
+            NO trailing commas. Every row MUST have all columns that exist in the header.
             """
             
             # Pass image and json string

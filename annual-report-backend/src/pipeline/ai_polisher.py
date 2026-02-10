@@ -3,6 +3,7 @@ import os
 import json
 import logging
 import time
+import re
 from typing import Dict, Any, List
 from PIL import Image
 import google.generativeai as genai
@@ -11,6 +12,16 @@ from dotenv import load_dotenv
 load_dotenv()
 
 logger = logging.getLogger(__name__)
+
+def clean_json_string(text: str) -> str:
+    """
+    Removes trailing commas from JSON strings that break json.loads()
+    Common issue with AI-generated JSON.
+    """
+    # Remove trailing commas before closing braces/brackets
+    # Pattern: , followed by optional whitespace, then } or ]
+    text = re.sub(r',(\s*[}\]])', r'\1', text)
+    return text
 
 class AIPolisher:
     """
@@ -118,6 +129,9 @@ class AIPolisher:
 
             # Remove markdown logic if present
             clean_text = raw_text.replace("```json", "").replace("```", "").strip()
+            
+            # Clean trailing commas (common AI JSON error)
+            clean_text = clean_json_string(clean_text)
             
             polished_data = json.loads(clean_text)
             

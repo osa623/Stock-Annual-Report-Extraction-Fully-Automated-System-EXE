@@ -1,6 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import ModuleCard from '../components/ui/ModuleCard';
+import { REPORT_SECTIONS, SECTION_CATEGORIES } from '../features/report-sections/sectionConfig';
 import {
     CircleStackIcon,
     PhotoIcon,
@@ -22,9 +23,9 @@ const Home = () => {
                 </p>
             </div>
 
-            {/* Extraction Modules */}
+            {/* Financial Statement Extraction */}
             <section>
-                <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-4">Extraction Modules</h2>
+                <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-4">Financial Statement Extraction</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-5">
                     <ModuleCard
                         title="PDF Data Handler"
@@ -57,28 +58,26 @@ const Home = () => {
                 </div>
             </section>
 
-            {/* Quick access */}
-            <section>
-                <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-4">Quick Access</h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                    <div
-                        onClick={() => navigate('/report-sections')}
-                        className="group bg-white border border-slate-200 rounded-2xl p-6 hover:shadow-lg hover:border-slate-300 transition-all duration-300 cursor-pointer"
-                    >
-                        <div className="flex items-center gap-4">
-                            <div className="w-11 h-11 rounded-xl bg-slate-100 flex items-center justify-center">
-                                <DocumentTextIcon className="w-5 h-5 text-slate-900" />
-                            </div>
-                            <div>
-                                <h3 className="text-base font-semibold text-slate-900 group-hover:text-black transition-colors">
-                                    Report Sections
-                                </h3>
-                                <p className="text-sm text-slate-500">Extract 14 additional annual report sections — governance, risk, directors, and more.</p>
-                            </div>
+            {/* Report Data Extraction — grouped by category */}
+            {SECTION_CATEGORIES.map((cat) => {
+                const sections = REPORT_SECTIONS.filter((s) => s.category === cat);
+                return (
+                    <section key={cat}>
+                        <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-4">{cat}</h2>
+                        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-5">
+                            {sections.map((sec) => (
+                                <ModuleCard
+                                    key={sec.key}
+                                    title={sec.title}
+                                    description={sec.description}
+                                    icon={DocumentTextIcon}
+                                    route={`/report-sections/${sec.key}`}
+                                />
+                            ))}
                         </div>
-                    </div>
-                </div>
-            </section>
+                    </section>
+                );
+            })}
 
             {/* Stats overview */}
             <section>

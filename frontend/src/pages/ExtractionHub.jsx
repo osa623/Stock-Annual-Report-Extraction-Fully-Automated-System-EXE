@@ -2,14 +2,16 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import SectionLayout from '../components/ui/SectionLayout';
 import ModuleCard from '../components/ui/ModuleCard';
+import { REPORT_SECTIONS, SECTION_CATEGORIES } from '../features/report-sections/sectionConfig';
 import {
   CircleStackIcon,
   PhotoIcon,
   DocumentArrowDownIcon,
   CalendarDaysIcon,
+  DocumentTextIcon,
 } from '@heroicons/react/24/outline';
 
-const modules = [
+const coreModules = [
   {
     title: 'PDF Data Handler',
     description: 'Save and manage extracted financial statement data — Income Statement, Financial Position, Cash Flow.',
@@ -46,10 +48,37 @@ const ExtractionHub = () => {
       title="Extraction Hub"
       description="All PDF extraction tools and data handlers in one place."
     >
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-5">
-        {modules.map((mod) => (
-          <ModuleCard key={mod.title} {...mod} />
-        ))}
+      {/* Financial Statement Extraction */}
+      <div className="space-y-8">
+        <div>
+          <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-4">Financial Statement Extraction</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-5">
+            {coreModules.map((mod) => (
+              <ModuleCard key={mod.title} {...mod} />
+            ))}
+          </div>
+        </div>
+
+        {/* Report Data Extraction — grouped by category */}
+        {SECTION_CATEGORIES.map((cat) => {
+          const sections = REPORT_SECTIONS.filter((s) => s.category === cat);
+          return (
+            <div key={cat}>
+              <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-4">{cat}</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-5">
+                {sections.map((sec) => (
+                  <ModuleCard
+                    key={sec.key}
+                    title={sec.title}
+                    description={sec.description}
+                    icon={DocumentTextIcon}
+                    route={`/report-sections/${sec.key}`}
+                  />
+                ))}
+              </div>
+            </div>
+          );
+        })}
       </div>
 
       {/* Quick Stats */}

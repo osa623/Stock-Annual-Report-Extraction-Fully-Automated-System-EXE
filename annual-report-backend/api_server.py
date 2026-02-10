@@ -1185,8 +1185,9 @@ def extract_batch_images():
                 return rel_path, {"status": "error", "error": str(e)}
 
         # Use ThreadPoolExecutor for parallel processing
-        # Reducing max_workers to 2 to avoid hitting Gemini Rate Limits (429)
-        max_workers = min(len(relative_paths), 2) 
+        # Sequential processing (max_workers=1) to avoid Gemini 429 Rate Limits
+        # Each image uses ~6,500-9,000 tokens; sequential keeps us under 15 RPM
+        max_workers = 1
         
         aggregated_statements = {}
         sector = None
@@ -1196,11 +1197,18 @@ def extract_batch_images():
         with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
             future_to_path = {executor.submit(process_image, path): path for path in relative_paths}
             
+            completed_count = 0
             for future in concurrent.futures.as_completed(future_to_path):
                 path = future_to_path[future]
                 try:
                     rel_path, res = future.result()
                     results[rel_path] = res
+                    completed_count += 1
+                    
+                    # Add delay between images to avoid Gemini 429 rate limits
+                    if completed_count < len(relative_paths):
+                        import time as _time
+                        _time.sleep(3)  # 3s gap between Gemini calls
                     
                     if res.get("status") == "success":
                          # Capture metadata from the first successful extraction to form the Report Header

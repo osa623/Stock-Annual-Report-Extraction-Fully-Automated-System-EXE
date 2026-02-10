@@ -1,0 +1,22 @@
+# MD&A Extraction Service — Python dependencies
+fastapi>=0.110.0
+uvicorn[standard]>=0.29.0
+python-multipart>=0.0.9
+python-dotenv>=1.0.0
+pymongo[srv]>=4.7.0
+dnspython>=2.6.0
+
+# OCR & image processing
+pytesseract>=0.3.10
+Pillow>=10.0.0
+pdf2image>=1.17.0
+pandas>=2.0.0
+
+# Fuzzy matching
+rapidfuzz>=3.6.0
+
+# Gemini LLM
+google-generativeai>=0.7.0
+
+# Pydantic (ships with FastAPI, pin for safety)
+pydantic>=2.0.0

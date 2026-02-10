@@ -1,70 +1,102 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-
-const FeatureCard = ({ title, description, onClick }) => (
-    <div
-        onClick={onClick}
-        className={`group p-8 border border-gray-100 rounded-3xl shadow-sm transition-all duration-500 hover:shadow-xl hover:-translate-y-2 bg-white ${onClick ? 'cursor-pointer' : ''}`}
-    >
-        <div className="mb-6">
-            <h2 className="text-2xl font-bold text-gray-900 tracking-tight">{title}</h2>
-            <p className="text-gray-500 mt-1 font-medium">{description}</p>
-        </div>
-
-        <div className='w-full h-1.5 bg-gray-100 rounded-full overflow-hidden'>
-            <div className='h-full bg-black w-1/3 rounded-full transition-all duration-700 group-hover:w-1/2'></div>
-        </div>
-
-        <div className='relative mt-8 w-full h-80 bg-zinc-950 rounded-[2rem] overflow-hidden transition-transform duration-500 group-hover:scale-[1.02]'
-            style={{
-                boxShadow: 'inset 0px 20px 40px rgba(255,255,255,0.1), inset 0px -10px 20px rgba(0,0,0,0.4)'
-            }}>
-            <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
-        </div>
-    </div>
-);
+import ModuleCard from '../components/ui/ModuleCard';
+import {
+    CircleStackIcon,
+    PhotoIcon,
+    DocumentArrowDownIcon,
+    CalendarDaysIcon,
+    DocumentTextIcon,
+} from '@heroicons/react/24/outline';
 
 const Home = () => {
     const navigate = useNavigate();
 
-    const features = [
-
-        {
-            title: "PDF Data Handler",
-            description: "Manage pdf data structures",
-            action: () => navigate('/data-explorer')
-        },
-        {
-            title: "Annual PDF Extractor",
-            description: "Automated document data extraction",
-            action: () => navigate('/dashboard')
-        },
-        {
-            title: "Raw Image Extractor",
-            description: "Extract data from raw image inputs",
-            action: () => navigate('/image-extractor')
-        },
-        {
-            title: "Quaterly PDF Extractor",
-            description: "Automated document data extraction",
-            action: () => navigate('/*')
-        }
-    ];
-
     return (
-        <div className="min-h-screen bg-gray-50/50 flex items-center justify-center p-6">
-            <div className="max-w-7xl w-full mx-auto">
-                <section className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    {features.map((feature, idx) => (
-                        <FeatureCard
-                            key={idx}
-                            title={feature.title}
-                            description={feature.description}
-                            onClick={feature.action}
-                        />
-                    ))}
-                </section>
+        <div className="space-y-8">
+            {/* Welcome */}
+            <div>
+                <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Welcome back</h1>
+                <p className="text-sm text-slate-500 mt-1">
+                    Select a module to get started, or explore the sidebar for more options.
+                </p>
             </div>
+
+            {/* Extraction Modules */}
+            <section>
+                <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-4">Extraction Modules</h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-5">
+                    <ModuleCard
+                        title="PDF Data Handler"
+                        description="Save and manage extracted financial statement data."
+                        icon={CircleStackIcon}
+                        route="/data-explorer"
+                        status="Active"
+                    />
+                    <ModuleCard
+                        title="Annual PDF Extractor"
+                        description="Automated extraction of Income Statement, Financial Position, Cash Flow."
+                        icon={DocumentArrowDownIcon}
+                        route="/dashboard"
+                        status="Active"
+                    />
+                    <ModuleCard
+                        title="Raw Image Extractor"
+                        description="Extract financial statements from raw image inputs with OCR."
+                        icon={PhotoIcon}
+                        route="/image-extractor"
+                        status="Active"
+                    />
+                    <ModuleCard
+                        title="Quarterly PDF Extractor"
+                        description="Extract quarterly financial statements from interim reports."
+                        icon={CalendarDaysIcon}
+                        route="/*"
+                        status="Coming Soon"
+                    />
+                </div>
+            </section>
+
+            {/* Quick access */}
+            <section>
+                <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-4">Quick Access</h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <div
+                        onClick={() => navigate('/report-sections')}
+                        className="group bg-white border border-slate-200 rounded-2xl p-6 hover:shadow-lg hover:border-slate-300 transition-all duration-300 cursor-pointer"
+                    >
+                        <div className="flex items-center gap-4">
+                            <div className="w-11 h-11 rounded-xl bg-slate-100 flex items-center justify-center">
+                                <DocumentTextIcon className="w-5 h-5 text-slate-900" />
+                            </div>
+                            <div>
+                                <h3 className="text-base font-semibold text-slate-900 group-hover:text-black transition-colors">
+                                    Report Sections
+                                </h3>
+                                <p className="text-sm text-slate-500">Extract 14 additional annual report sections — governance, risk, directors, and more.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            {/* Stats overview */}
+            <section>
+                <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-4">Overview</h2>
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-5">
+                    {[
+                        { label: 'PDFs Processed', value: '—' },
+                        { label: 'Sections Extracted', value: '—' },
+                        { label: 'Data Points', value: '—' },
+                        { label: 'Active Year', value: '2024' },
+                    ].map((stat) => (
+                        <div key={stat.label} className="bg-white border border-slate-200 rounded-2xl p-5">
+                            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">{stat.label}</p>
+                            <p className="text-2xl font-bold text-slate-900 mt-2">{stat.value}</p>
+                        </div>
+                    ))}
+                </div>
+            </section>
         </div>
     );
 };

@@ -4,6 +4,7 @@ import json
 import logging
 import time
 import re
+import ast
 from typing import Dict, Any, List
 from PIL import Image
 import google.generativeai as genai
@@ -15,12 +16,26 @@ logger = logging.getLogger(__name__)
 
 def clean_json_string(text: str) -> str:
     """
-    Removes trailing commas from JSON strings that break json.loads()
-    Common issue with AI-generated JSON.
+    Cleans common malformations in AI-generated JSON:
+    - Trailing commas before } or ]
+    - Single quotes instead of double quotes
+    - Unquoted property names
+    - Extra commas
     """
     # Remove trailing commas before closing braces/brackets
-    # Pattern: , followed by optional whitespace, then } or ]
     text = re.sub(r',(\s*[}\]])', r'\1', text)
+    
+    # Remove multiple consecutive commas
+    text = re.sub(r',\s*,', ',', text)
+    
+    # Replace single quotes with double quotes (but be careful with apostrophes in values)
+    # This is a simplified approach - replace ' with " for keys and string values
+    text = re.sub(r"'([^']*)'(\s*:\s*)", r'"\1"\2', text)  # Fix keys with single quotes
+    text = re.sub(r":\s*'([^']*)'", r': "\1"', text)  # Fix values with single quotes
+    
+    # Remove any trailing commas after the last item in arrays/objects (aggressive cleanup)
+    text = re.sub(r',(\s*\n\s*[}\]])', r'\1', text)
+    
     return text
 
 class AIPolisher:
@@ -73,15 +88,18 @@ class AIPolisher:
                - Ensure values are in the correct column.
             4. **Clean Noise:** Remove empty rows or garbage text.
 
-            **Output Format:**
+            **CRITICAL - Output Format:**
+            Return ONLY valid JSON. No trailing commas. Use double quotes for all keys and strings.
             Return a SINGLE JSON object with a "data" key, containing a list of row objects.
-            Example:
+            
+            VALID Example:
             {
               "data": [
-                {"label": "Revenue", "Note": "3", "2024 (Group)": "100,000", "2023 (Group)": "90,000"},
-                ...
+                {"label": "Revenue", "Note": "3", "2024 (Group)": "100,000", "2023 (Group)": "90,000"}
               ]
             }
+            
+            Do NOT include trailing commas after the last item in arrays or objects.
             """
             
             # Pass image and json string
@@ -91,7 +109,14 @@ class AIPolisher:
             for attempt in range(max_retries):
                 try:
                     # Send simplified JSON to save tokens
-                    response = self.model.generate_content([prompt, image, json.dumps(simplified_json)])
+                    # Configure for JSON output mode (Gemini 2.0 Flash supports this)
+                    generation_config = {
+                        "response_mime_type": "application/json"
+                    }
+                    response = self.model.generate_content(
+                        [prompt, image, json.dumps(simplified_json)],
+                        generation_config=generation_config
+                    )
                     break # Success, exit retry loop
                 except Exception as e:
                     if "504" in str(e) or "Deadline Exceeded" in str(e) or "429" in str(e) or "Resource exhausted" in str(e):
@@ -133,7 +158,22 @@ class AIPolisher:
             # Clean trailing commas (common AI JSON error)
             clean_text = clean_json_string(clean_text)
             
-            polished_data = json.loads(clean_text)
+            try:
+                polished_data = json.loads(clean_text)
+            except json.JSONDecodeError as json_err:
+                logger.error(f"JSON Parse Error: {json_err}")
+                logger.error(f"Problematic JSON context (chars {max(0, json_err.pos-100)}:{json_err.pos+100}):")
+                logger.error(clean_text[max(0, json_err.pos-100):json_err.pos+100])
+                
+                # Try one more aggressive fix: use json5 or eval as last resort
+                try:
+                    # Attempt to fix by removing all comments and fixing common issues
+                    import ast
+                    # Try to evaluate as Python literal (more forgiving)
+                    polished_data = ast.literal_eval(clean_text)
+                except:
+                    logger.error("All JSON parsing attempts failed. Falling back to OCR data.")
+                    return ocr_json
             
             # Add meta tag
             if isinstance(polished_data, dict):

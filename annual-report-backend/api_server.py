@@ -10,6 +10,7 @@ import sys
 import shutil
 import requests
 import json
+import time
 import concurrent.futures
 from dotenv import load_dotenv
 from datetime import datetime
@@ -1184,9 +1185,9 @@ def extract_batch_images():
             except Exception as e:
                 return rel_path, {"status": "error", "error": str(e)}
 
-        # Use ThreadPoolExecutor for parallel processing
-        # Reducing max_workers to 2 to avoid hitting Gemini Rate Limits (429)
-        max_workers = min(len(relative_paths), 2) 
+        # Use ThreadPoolExecutor for processing
+        # Sequential (max_workers=1) to avoid Gemini 429 Rate Limits
+        max_workers = 1
         
         aggregated_statements = {}
         sector = None
@@ -1196,11 +1197,17 @@ def extract_batch_images():
         with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
             future_to_path = {executor.submit(process_image, path): path for path in relative_paths}
             
+            completed_count = 0
             for future in concurrent.futures.as_completed(future_to_path):
                 path = future_to_path[future]
                 try:
                     rel_path, res = future.result()
                     results[rel_path] = res
+                    completed_count += 1
+                    
+                    # Add delay between images to avoid Gemini 429 rate limits
+                    if completed_count < len(relative_paths):
+                        time.sleep(3)
                     
                     if res.get("status") == "success":
                          # Capture metadata from the first successful extraction to form the Report Header
@@ -1234,6 +1241,15 @@ def extract_batch_images():
                 logger.info(f"Saved Consolidated OCR Report to DB: {report_payload['pdfId']}")
             except Exception as e:
                 logger.error(f"Failed to save consolidated report: {e}")
+
+        # Force refresh the AI polisher after each batch to prevent session degradation
+        try:
+            global ai_polisher_instance
+            if 'ai_polisher_instance' in globals() and ai_polisher_instance is not None:
+                ai_polisher_instance.force_refresh()
+                logger.info("AI Polisher refreshed after batch completion")
+        except Exception as refresh_err:
+            logger.warning(f"Failed to refresh AI polisher: {refresh_err}")
 
         return jsonify({
             "message": "Batch extraction complete",

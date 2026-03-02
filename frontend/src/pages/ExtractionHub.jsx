@@ -4,8 +4,6 @@ import SectionLayout from '../components/ui/SectionLayout';
 import ModuleCard from '../components/ui/ModuleCard';
 import { REPORT_SECTIONS, SECTION_CATEGORIES } from '../features/report-sections/sectionConfig';
 import {
-  CircleStackIcon,
-  PhotoIcon,
   DocumentArrowDownIcon,
   CalendarDaysIcon,
   DocumentTextIcon,
@@ -13,23 +11,9 @@ import {
 
 const coreModules = [
   {
-    title: 'PDF Data Handler',
-    description: 'Save and manage extracted financial statement data — Income Statement, Financial Position, Cash Flow.',
-    route: '/data-explorer',
-    icon: CircleStackIcon,
-    status: 'Active',
-  },
-  {
-    title: 'Raw Image Extractor',
-    description: 'Extract financial statements directly from raw image inputs with OCR processing.',
-    route: '/image-extractor',
-    icon: PhotoIcon,
-    status: 'Active',
-  },
-  {
     title: 'Annual PDF Extractor',
-    description: 'Automate full extraction of Income Statement, Financial Position, and Cash Flow from annual report PDFs.',
-    route: '/dashboard',
+    description: 'Upload a PDF and extract Income Statement, Financial Position, Cash Flow using Gemini 2.0 AI.',
+    route: '/extract',
     icon: DocumentArrowDownIcon,
     status: 'Active',
   },

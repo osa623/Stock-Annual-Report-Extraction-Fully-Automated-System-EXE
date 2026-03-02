@@ -14,11 +14,7 @@ const YEARS = ['2025', '2024', '2023', '2022', '2021', '2020'];
 
 const breadcrumbMap = {
   '/home': ['Home'],
-  '/extraction-hub': ['Extraction Hub'],
   '/settings': ['Settings'],
-  '/dashboard': ['Extraction Hub', 'Annual PDF Extractor'],
-  '/data-explorer': ['Extraction Hub', 'PDF Data Handler'],
-  '/image-extractor': ['Extraction Hub', 'Raw Image Extractor'],
 };
 
 const TopBar = ({ onToggleSidebar }) => {
@@ -45,15 +41,6 @@ const TopBar = ({ onToggleSidebar }) => {
   const getBreadcrumbs = () => {
     const path = location.pathname;
     if (breadcrumbMap[path]) return breadcrumbMap[path];
-    if (path.startsWith('/report-sections/')) {
-      const key = path.split('/report-sections/')[1];
-      const formatted = key
-        .split('-')
-        .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
-        .join(' ');
-      return ['Report Sections', formatted];
-    }
-    if (path.startsWith('/pdf/')) return ['Extraction Hub', 'PDF Detail'];
     if (path.startsWith('/profile/')) return ['Profile'];
     return ['Home'];
   };
@@ -124,9 +111,8 @@ const TopBar = ({ onToggleSidebar }) => {
                 <button
                   key={y}
                   onClick={() => { setSelectedYear(y); setYearOpen(false); }}
-                  className={`w-full text-left px-4 py-2 text-sm transition-colors ${
-                    y === selectedYear ? 'bg-slate-100 text-slate-900 font-medium' : 'text-slate-600 hover:bg-slate-50'
-                  }`}
+                  className={`w-full text-left px-4 py-2 text-sm transition-colors ${y === selectedYear ? 'bg-slate-100 text-slate-900 font-medium' : 'text-slate-600 hover:bg-slate-50'
+                    }`}
                 >
                   {y}
                 </button>

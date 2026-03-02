@@ -1,43 +1,19 @@
-import React, { useState, Fragment } from 'react';
+import React, { Fragment } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import {
   HomeIcon,
-  CubeTransparentIcon,
-  DocumentTextIcon,
   Cog6ToothIcon,
-  ChevronDownIcon,
-  Bars3Icon,
   XMarkIcon,
 } from '@heroicons/react/24/outline';
-import { REPORT_SECTIONS, SECTION_CATEGORIES } from '../../features/report-sections/sectionConfig';
 
 const navItems = [
   { label: 'Home', path: '/home', icon: HomeIcon },
-  { label: 'Extraction Hub', path: '/extraction-hub', icon: CubeTransparentIcon },
-  {
-    label: 'Report Sections',
-    path: '/report-sections',
-    icon: DocumentTextIcon,
-    children: SECTION_CATEGORIES.map((cat) => ({
-      category: cat,
-      items: REPORT_SECTIONS.filter((s) => s.category === cat).map((s) => ({
-        label: s.title,
-        path: `/report-sections/${s.key}`,
-      })),
-    })),
-  },
   { label: 'Settings', path: '/settings', icon: Cog6ToothIcon },
 ];
 
 const SidebarNav = ({ isOpen, onClose }) => {
   const location = useLocation();
-  const [expandedSection, setExpandedSection] = useState(null);
-
   const isActive = (path) => location.pathname === path;
-  const isChildActive = (item) => {
-    if (!item.children) return false;
-    return item.children.some((cat) => cat.items.some((i) => location.pathname === i.path));
-  };
 
   return (
     <Fragment>
@@ -77,71 +53,22 @@ const SidebarNav = ({ isOpen, onClose }) => {
         <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-1">
           {navItems.map((item) => {
             const Icon = item.icon;
-            const active = isActive(item.path) || isChildActive(item);
-            const hasChildren = !!item.children;
-            const expanded = expandedSection === item.label;
+            const active = isActive(item.path);
 
             return (
-              <div key={item.label}>
-                {hasChildren ? (
-                  <button
-                    onClick={() => setExpandedSection(expanded ? null : item.label)}
-                    className={`w-full flex items-center justify-between gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${
-                      active
-                        ? 'bg-slate-900 text-white'
-                        : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
-                    }`}
-                  >
-                    <div className="flex items-center gap-3">
-                      <Icon className="w-[18px] h-[18px]" />
-                      {item.label}
-                    </div>
-                    <ChevronDownIcon
-                      className={`w-4 h-4 transition-transform duration-200 ${expanded ? 'rotate-180' : ''}`}
-                    />
-                  </button>
-                ) : (
-                  <NavLink
-                    to={item.path}
-                    onClick={onClose}
-                    className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${
-                      active
-                        ? 'bg-slate-900 text-white'
-                        : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
-                    }`}
-                  >
-                    <Icon className="w-[18px] h-[18px]" />
-                    {item.label}
-                  </NavLink>
-                )}
-
-                {/* Collapsible children */}
-                {hasChildren && expanded && (
-                  <div className="mt-1 ml-3 pl-4 border-l border-slate-200 space-y-3 py-2">
-                    {item.children.map((cat) => (
-                      <div key={cat.category}>
-                        <span className="block text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1 px-3">
-                          {cat.category}
-                        </span>
-                        {cat.items.map((child) => (
-                          <NavLink
-                            key={child.path}
-                            to={child.path}
-                            onClick={onClose}
-                            className={`block px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
-                              isActive(child.path)
-                                ? 'bg-slate-100 text-slate-900'
-                                : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50'
-                            }`}
-                          >
-                            {child.label}
-                          </NavLink>
-                        ))}
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
+              <NavLink
+                key={item.label}
+                to={item.path}
+                onClick={onClose}
+                className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${
+                  active
+                    ? 'bg-slate-900 text-white'
+                    : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                }`}
+              >
+                <Icon className="w-[18px] h-[18px]" />
+                {item.label}
+              </NavLink>
             );
           })}
         </nav>

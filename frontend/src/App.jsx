@@ -8,27 +8,13 @@ import ProtectedRoutes from './components/ProtectedRoutes';
 // Layout
 import DashboardLayout from './layouts/DashboardLayout';
 
-// Existing pages
-import Dashboard from './pages/Dashboard';
-import PDFDetail from './pages/PDFDetail';
-import CompanyDetails from './pages/CompanyDetails';
-import OtherExtraction from './pages/OtherExtraction';
-import ShareholderPage from './pages/ShareholderPage';
-import InvestorRelationsPage from './pages/InvestorRelationsPage';
-import SubsidiaryPage from './pages/SubsidiaryPage';
+// Pages
 import Home from './pages/Home';
 import Login from './pages/Login';
 import Registration from './pages/Registration';
 import MFAsetupForm from './pages/MFAsetupForm';
 import MFAverifyForm from './pages/MFAverifyForm';
 import Profile from './pages/Profile';
-import DataExplorer from './pages/DataExplorer';
-import ImageExtractor from './pages/ImageExtractor';
-
-// New pages
-import ExtractionHub from './pages/ExtractionHub';
-import ReportSectionsIndex from './pages/ReportSectionsIndex';
-import ReportSectionPage from './pages/ReportSectionPage';
 import Settings from './pages/Settings';
 
 import AuthProvider from './utils/AuthContext';
@@ -54,25 +40,14 @@ function App() {
 
           {/* ─── Protected Routes (wrapped in DashboardLayout) ─── */}
           <Route path="/home" element={<WithLayout><Home /></WithLayout>} />
-          <Route path="/extraction-hub" element={<WithLayout><ExtractionHub /></WithLayout>} />
-          <Route path="/report-sections" element={<WithLayout><ReportSectionsIndex /></WithLayout>} />
-          <Route path="/report-sections/:sectionKey" element={<WithLayout><ReportSectionPage /></WithLayout>} />
           <Route path="/settings" element={<WithLayout><Settings /></WithLayout>} />
-
-          {/* Existing module routes — unchanged behavior */}
-          <Route path="/dashboard" element={<WithLayout><Dashboard /></WithLayout>} />
-          <Route path="/data-explorer" element={<WithLayout><DataExplorer /></WithLayout>} />
-          <Route path="/image-extractor" element={<WithLayout><ImageExtractor /></WithLayout>} />
-
-          <Route path="/pdf/:pdfId/statements" element={<WithLayout><PDFDetail /></WithLayout>} />
-          <Route path="/pdf/:pdfId/company" element={<WithLayout><CompanyDetails /></WithLayout>} />
-          <Route path="/pdf/:pdfId/other" element={<WithLayout><OtherExtraction /></WithLayout>} />
-          <Route path="/pdf/:pdfId/shareholders" element={<WithLayout><ShareholderPage /></WithLayout>} />
-          <Route path="/pdf/:pdfId/investor-relations" element={<WithLayout><InvestorRelationsPage /></WithLayout>} />
-          <Route path="/pdf/:pdfId/subsidiary" element={<WithLayout><SubsidiaryPage /></WithLayout>} />
-          <Route path="/pdf/:pdfId" element={<WithLayout><PDFDetail /></WithLayout>} />
-
           <Route path="/profile/:userId" element={<WithLayout><Profile /></WithLayout>} />
+
+          {/* ─── Redirect old routes to Home ─── */}
+          <Route path="/extract" element={<Navigate to="/home" replace />} />
+          <Route path="/extraction-hub" element={<Navigate to="/home" replace />} />
+          <Route path="/report-sections" element={<Navigate to="/home" replace />} />
+          <Route path="/report-sections/:sectionKey" element={<Navigate to="/home" replace />} />
         </Routes>
       </Router>
     </AuthProvider>

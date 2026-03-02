@@ -12,240 +12,95 @@ const api = axios.create({
 
 export const pdfService = {
 
-
-  // Fetch all PDFs from the input folder
-  getAllPDFs: async () => {
-    try {
-      const response = await api.get('/pdfs');
-      return response.data;
-    } catch (error) {
-      console.error('Error fetching PDFs:', error);
-      throw error;
-    }
+  /**
+   * Upload a PDF file for processing.
+   * Returns { success, pdf_id, filename, size_mb }
+   */
+  uploadPDF: async (file) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    const response = await api.post('/upload-pdf', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+      timeout: 60000,
+    });
+    return response.data;
   },
 
-
-  getRawFileStructure: async () => {
-    try {
-      const response = await api.get('/files/raw');
-      return response.data;
-    } catch (error) {
-      console.error('Error fetching raw file structure:', error);
-      throw error;
-    }
+  /**
+   * Run extraction on a previously uploaded PDF.
+   * Returns { success, pdf_id, filename, data: { income_statement, balance_sheet, cash_flow, additional_sections } }
+   */
+  extractPDF: async (pdfId) => {
+    const response = await api.post(`/extract/${pdfId}`, {}, {
+      timeout: 600000, // 10 min — 3 sequential extraction calls for large PDFs
+    });
+    return response.data;
   },
 
-  //get all pdfs by categories
-  getAllPDFsByCategory: async () => {
-    try {
-      const response = await api.get('/pdfs/by-category');
-      return response.data;
-    } catch (error) {
-      console.error('Error fetching PDFs by category:', error);
-      throw error;
-    }
+  /**
+   * Connect to SSE progress stream for real-time extraction updates.
+   * Opens an EventSource to the backend and calls onProgress(data) for each event.
+   * Returns the EventSource instance (caller should close it when done).
+   *
+   * @param {string} pdfId
+   * @param {(data: {step: number, total: number, message: string}) => void} onProgress
+   * @returns {EventSource}
+   */
+  createProgressStream: (pdfId, onProgress) => {
+    const baseUrl = API_BASE_URL;
+    const eventSource = new EventSource(`${baseUrl}/extract/${pdfId}/progress`);
+
+    eventSource.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        onProgress(data);
+        if (data.step === -1) {
+          eventSource.close();
+        }
+      } catch (e) {
+        console.error('SSE parse error:', e);
+      }
+    };
+
+    eventSource.onerror = () => {
+      eventSource.close();
+    };
+
+    return eventSource;
   },
 
-  // Shareholder detection and extraction
-  detectShareholders: async (pdfId) => {
-    try {
-      const response = await api.post(`/pdfs/${pdfId}/shareholders/detect`);
-      return response.data;
-    } catch (error) {
-      console.error('Error detecting shareholders:', error);
-      throw error;
-    }
+  /**
+   * Export extracted data in the given format.
+   * Downloads the file directly.
+   * @param {'json'|'xlsx'|'csv'|'pdf'|'docx'} format
+   */
+  exportData: async (pdfId, format) => {
+    const response = await api.post(`/export/${pdfId}?format=${format}`, {}, {
+      responseType: 'blob',
+      timeout: 60000,
+    });
+
+    // Trigger browser download
+    const blob = new Blob([response.data]);
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+
+    const ext = format === 'xlsx' ? 'xlsx' : format === 'docx' ? 'docx' : format;
+    a.download = `extracted_data.${ext}`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    window.URL.revokeObjectURL(url);
   },
 
-  getShareholderImages: async (pdfId, pageNum) => {
-    try {
-      const response = await api.post(`/pdfs/${pdfId}/shareholders/images`, {
-        page_num: pageNum
-      });
-      return response.data;
-    } catch (error) {
-      console.error('Error getting shareholder images:', error);
-      throw error;
-    }
+  /**
+   * Health check
+   */
+  healthCheck: async () => {
+    const response = await api.get('/health');
+    return response.data;
   },
-
-  extractShareholderTable: async (pdfId, pageNum, bbox = null) => {
-    try {
-      const response = await api.post(`/pdfs/${pdfId}/shareholders/extract`, {
-        page_num: pageNum,
-        bbox: bbox
-      });
-      return response.data;
-    } catch (error) {
-      console.error('Error extracting shareholder table:', error);
-      throw error;
-    }
-  },
-
-  // Investor Relations detection and extraction
-  detectInvestorRelations: async (pdfId) => {
-    try {
-      const response = await api.post(`/pdfs/${pdfId}/investor-relations/detect`);
-      return response.data;
-    } catch (error) {
-      console.error('Error detecting investor relations:', error);
-      throw error;
-    }
-  },
-
-  getInvestorRelationsImages: async (pdfId, pageNumbers) => {
-    try {
-      const response = await api.post(`/pdfs/${pdfId}/investor-relations/images`, {
-        pages: pageNumbers
-      });
-      return response.data;
-    } catch (error) {
-      console.error('Error getting investor relations images:', error);
-      throw error;
-    }
-  },
-
-  extractInvestorRelationsData: async (pdfId, pageNum, bbox = null) => {
-    try {
-      const response = await api.post(`/pdfs/${pdfId}/investor-relations/extract`, {
-        page_num: pageNum,
-        bbox: bbox
-      });
-      return response.data;
-    } catch (error) {
-      console.error('Error extracting investor relations data:', error);
-      throw error;
-    }
-  },
-
-  // Get PDFs grouped by category
-  getPDFsByCategory: async () => {
-    try {
-      const response = await api.get('/pdfs/by-category');
-      return response.data;
-    } catch (error) {
-      console.error('Error fetching PDFs by category:', error);
-      throw error;
-    }
-  },
-
-  // Extract three statements from a PDF
-  extractStatements: async (pdfId) => {
-    try {
-      const response = await api.post(`/pdfs/${pdfId}/extract`);
-      return response.data;
-    } catch (error) {
-      console.error('Error extracting statements:', error);
-      throw error;
-    }
-  },
-
-  // Submit selected statements
-  submitSelectedStatements: async (pdfId, selectedStatements) => {
-    try {
-      const response = await api.post(`/pdfs/${pdfId}/submit`, {
-        selectedStatements,
-      });
-      return response.data;
-    } catch (error) {
-      console.error('Error submitting statements:', error);
-      throw error;
-    }
-  },
-
-  // Extract data from selected pages
-  extractDataFromPages: async (pdfId, selectedPages) => {
-    try {
-      const response = await api.post(`/pdfs/${pdfId}/extract-data`, {
-        selectedPages,
-      });
-      return response.data;
-    } catch (error) {
-      console.error('Error extracting data from pages:', error);
-      throw error;
-    }
-  },
-  // Subsidiary Chart Detection and Extraction
-  detectSubsidiaryPages: async (pdfId) => {
-    try {
-      const response = await api.post(`/pdfs/${pdfId}/subsidiary-chart/detect`, {});
-      return response.data;
-    } catch (error) {
-      // If 404/500, we might return empty to avoid breaking UI
-      console.error('Error detecting subsidiary pages:', error);
-      throw error;
-    }
-  },
-
-  getSubsidiaryImages: async (pdfId, pageNumbers) => {
-    try {
-      const response = await api.post(`/pdfs/${pdfId}/subsidiary-chart/images`, {
-        pages: pageNumbers
-      });
-      return response.data;
-    } catch (error) {
-      console.error('Error getting subsidiary images:', error);
-      throw error;
-    }
-  },
-
-  extractSubsidiaryChart: async (pdfId, pageNum) => {
-    try {
-      const response = await api.post(`/pdfs/${pdfId}/subsidiary-chart/extract`, {
-        page_num: pageNum
-      });
-      return response.data;
-    } catch (error) {
-      console.error('Error extracting subsidiary chart:', error);
-      throw error;
-    }
-  },
-
-  // Update extracted data (File + DB)
-  updateExtractedData: async (pdfId, data) => {
-    try {
-      const response = await api.put(`/pdfs/${pdfId}/data`, data);
-      return response.data;
-    } catch (error) {
-      console.error('Error updating extracted data:', error);
-      throw error;
-    }
-  },
-
-  // Raw Image Handling for LLM Extraction
-  getRawImagesStructure: async () => {
-    try {
-      const response = await api.get('/raw-images');
-      return response.data;
-    } catch (error) {
-      console.error('Error fetching raw images structure:', error);
-      throw error;
-    }
-  },
-
-  extractFromImage: async (path) => {
-    try {
-      const response = await api.post('/extract-from-image', { path });
-      return response.data;
-    } catch (error) {
-      console.error('Error extracting from image:', error);
-      throw error;
-    }
-  },
-
-  extractBatch: async (paths) => {
-    try {
-      const response = await api.post('/extract-batch', { paths });
-      return response.data;
-    } catch (error) {
-      console.error('Error in batch extraction:', error);
-      throw error;
-    }
-  },
-
-  getRawImageUrl: (path) => {
-    return `${API_BASE_URL}/raw-images/serve?path=${encodeURIComponent(path)}`;
-  }
 };
 
 export default api;

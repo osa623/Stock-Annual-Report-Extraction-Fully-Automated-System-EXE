@@ -202,16 +202,22 @@ class GeminiFinancialExtractor:
         cache_key = str(pdf_path)
         if cache_key in self._file_cache:
             ref, ts = self._file_cache[cache_key]
-            # Reuse if less than 45 min old
-            if time.time() - ts < 2700:
+            age = time.time() - ts
+            # Reuse if less than 45 min old — skip the slow get_file() check
+            # for recently cached files (under 5 min), trust the cache
+            if age < 2700:
+                if age < 300:
+                    logger.info(f"Reusing cached Gemini file (age {age:.0f}s): {ref.name}")
+                    return ref
+                # Older than 5 min — verify it's still active
                 try:
                     info = genai.get_file(ref.name)
                     if info.state.name == "ACTIVE":
-                        logger.info(f"Reusing cached Gemini file: {ref.name}")
+                        logger.info(f"Reusing cached Gemini file (verified): {ref.name}")
                         return ref
                 except Exception:
                     pass
-            # Stale — remove
+            # Stale or dead — remove
             self._file_cache.pop(cache_key, None)
 
         uploaded = genai.upload_file(
@@ -475,6 +481,7 @@ class GeminiFinancialExtractor:
             return None
 
         # ── Attempt 1: direct parse ──────────────────────────────────
+        parse_error = None
         try:
             data = json.loads(text)
             if data is None:
@@ -483,8 +490,9 @@ class GeminiFinancialExtractor:
                 return data
             logger.warning(f"Unexpected response type: {type(data)}")
             return None
-        except json.JSONDecodeError as first_err:
-            logger.warning(f"Direct JSON parse failed ({len(text)} chars): {first_err}")
+        except json.JSONDecodeError as e:
+            parse_error = e
+            logger.warning(f"Direct JSON parse failed ({len(text)} chars): {e}")
             logger.warning(f"Last 300 chars: ...{text[-300:]}")
 
         # ── Attempt 2: truncation repair ─────────────────────────────
@@ -511,13 +519,10 @@ class GeminiFinancialExtractor:
             logger.error(f"Repair also failed. First 1000 chars: {text[:1000]}")
             raise RuntimeError(
                 "Received an incomplete response. Please try again."
-            ) from first_err
+            ) from parse_error
 
     @staticmethod
     def _row_count(section) -> int:
-        if section and isinstance(section, dict):
-            return len(section.get("rows", []))
-        return 0
         if section and isinstance(section, dict):
             return len(section.get("rows", []))
         return 0

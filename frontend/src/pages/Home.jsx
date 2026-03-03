@@ -1,5 +1,8 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { pdfService } from '../services/api';
+import { useCredits } from '../utils/CreditContext';
+import InsufficientCreditsModal from '../components/InsufficientCreditsModal';
 import {
     ArrowUpTrayIcon,
     DocumentTextIcon,
@@ -187,12 +190,15 @@ const StatementTable = ({ section }) => {
 // Main component
 // ---------------------------------------------------------------------------
 const Home = () => {
+    const navigate = useNavigate();
+    const { credits, useCredit } = useCredits();
     const [phase, setPhase] = useState('upload'); // upload | extraction
     const [file, setFile] = useState(null);
     const [pdfId, setPdfId] = useState(null);
     const [uploading, setUploading] = useState(false);
     const [error, setError] = useState(null);
     const [dragActive, setDragActive] = useState(false);
+    const [showCreditModal, setShowCreditModal] = useState(false);
     const fileInputRef = useRef(null);
 
     const [sectionStates, setSectionStates] = useState({});
@@ -212,10 +218,17 @@ const Home = () => {
 
     // -- Upload -------------------------------------------------------------
     const handleFileSelected = async (selectedFile) => {
+        // Check credits before allowing upload
+        if (credits <= 0) {
+            setShowCreditModal(true);
+            return;
+        }
         setFile(selectedFile); setError(null); setSectionStates({}); setActiveSection(null); setPdfId(null); setUploading(true);
         try {
             const res = await pdfService.uploadPDF(selectedFile);
             setPdfId(res.pdf_id);
+            // Deduct 1 credit on successful upload
+            useCredit();
             setPhase('extraction');
         } catch (err) {
             setError(err.response?.data?.error || err.message || 'Upload failed');
@@ -305,11 +318,22 @@ const Home = () => {
                         )}
                     </p>
                 </div>
-                {phase === 'extraction' && (
-                    <button onClick={handleReset} className="text-[13px] text-slate-400 hover:text-slate-600 transition-colors">
-                        New file
-                    </button>
-                )}
+                <div className="flex items-center gap-3">
+                    {phase === 'upload' && (
+                        <div className="flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-1.5">
+                            <span className={`w-2 h-2 rounded-full ${credits > 0 ? 'bg-green-500' : 'bg-red-400'}`} />
+                            <span className="text-[13px] text-slate-600 font-medium">{credits} credit{credits !== 1 ? 's' : ''}</span>
+                            {credits === 0 && (
+                                <button onClick={() => navigate('/pricing')} className="text-[11px] text-indigo-600 hover:text-indigo-700 font-medium ml-1">Buy more</button>
+                            )}
+                        </div>
+                    )}
+                    {phase === 'extraction' && (
+                        <button onClick={handleReset} className="text-[13px] text-slate-400 hover:text-slate-600 transition-colors">
+                            New file
+                        </button>
+                    )}
+                </div>
             </div>
 
             {/* ---- Error --------------------------------------------------- */}
@@ -520,6 +544,8 @@ const Home = () => {
                     )}
                 </div>
             )}
+            {/* Insufficient credits modal */}
+            <InsufficientCreditsModal open={showCreditModal} onClose={() => setShowCreditModal(false)} />
         </div>
     );
 };

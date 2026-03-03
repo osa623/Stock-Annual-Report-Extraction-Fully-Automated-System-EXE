@@ -27,7 +27,7 @@ logger = logging.getLogger(__name__)
 # Add parent directory to path
 sys.path.append(str(Path(__file__).parent))
 
-from src.services.gemini_service import GeminiFinancialExtractor
+from src.services.gemini_service import GeminiFinancialExtractor, ALL_STATEMENT_CONFIGS
 
 # ── Flask Setup ───────────────────────────────────────────────────────
 app = Flask(__name__)
@@ -166,6 +166,73 @@ def extract_pdf(pdf_id):
         progress_queues.pop(pdf_id, None)
 
 
+@app.route('/api/extract/<pdf_id>/<statement_key>', methods=['POST'])
+def extract_single_statement(pdf_id, statement_key):
+    """
+    Extract a SINGLE financial statement from the uploaded PDF.
+    Returns just that statement's data. Results accumulate in extraction_results.
+    """
+    if gemini_extractor is None:
+        return jsonify({"error": "Extraction engine is not available. Check server configuration."}), 503
+
+    if statement_key not in ALL_STATEMENT_CONFIGS:
+        return jsonify({
+            "error": f"Unknown statement type: '{statement_key}'",
+            "valid_keys": list(ALL_STATEMENT_CONFIGS.keys()),
+        }), 400
+
+    pdf_info = pdf_registry.get(pdf_id)
+    if not pdf_info:
+        return jsonify({"error": f"PDF '{pdf_id}' not found. Upload a PDF first."}), 404
+
+    pdf_path = pdf_info["path"]
+    if not Path(pdf_path).exists():
+        return jsonify({"error": "PDF file no longer exists on disk"}), 404
+
+    display_name = ALL_STATEMENT_CONFIGS[statement_key][1]
+
+    try:
+        logger.info(f"Single extraction [{statement_key}] for {pdf_id}: {pdf_info['filename']}")
+        section_data = gemini_extractor.extract_single(pdf_path, statement_key)
+
+        # Accumulate results for this PDF
+        if pdf_id not in extraction_results:
+            extraction_results[pdf_id] = {
+                "data": {},
+                "filename": pdf_info["filename"],
+                "extracted_at": datetime.now().isoformat(),
+            }
+        extraction_results[pdf_id]["data"][statement_key] = section_data
+        extraction_results[pdf_id]["extracted_at"] = datetime.now().isoformat()
+
+        return jsonify({
+            "success": True,
+            "pdf_id": pdf_id,
+            "statement_key": statement_key,
+            "display_name": display_name,
+            "data": section_data,
+        }), 200
+
+    except FileNotFoundError as e:
+        return jsonify({"error": str(e)}), 404
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 400
+    except RuntimeError as e:
+        return jsonify({"error": str(e)}), 502
+    except Exception as e:
+        logger.error(f"Single extraction error [{statement_key}]: {e}", exc_info=True)
+        return jsonify({"error": f"Extraction failed: {str(e)}"}), 500
+
+
+@app.route('/api/statements', methods=['GET'])
+def list_statement_types():
+    """Return all available statement types for extraction."""
+    types = []
+    for key, (prompt, display_name) in ALL_STATEMENT_CONFIGS.items():
+        types.append({"key": key, "display_name": display_name})
+    return jsonify({"statement_types": types}), 200
+
+
 @app.route('/api/extract/<pdf_id>/progress', methods=['GET'])
 def extraction_progress(pdf_id):
     """
@@ -236,6 +303,23 @@ def export_data(pdf_id):
 # EXPORT HELPERS
 # ══════════════════════════════════════════════════════════════════════
 
+def _build_section_list(data):
+    """Build a unified section list from extraction data (supports old and new keys)."""
+    sections = [
+        ("Income Statement", data.get("income_statement")),
+        ("Statement of Financial Position", data.get("balance_sheet")),
+        ("Cash Flow Statement", data.get("cash_flow")),
+        ("Statement of Comprehensive Income", data.get("comprehensive_income")),
+        ("Statement of Changes in Equity", data.get("changes_in_equity")),
+        ("Independent Auditor's Report", data.get("auditors_report")),
+    ]
+    # Also include legacy additional_sections
+    for i, sec in enumerate(data.get("additional_sections") or []):
+        title = sec.get("title", f"Additional {i+1}")
+        sections.append((title, sec))
+    return sections
+
+
 def _section_to_rows(section):
     if not section or not isinstance(section, dict):
         return [], []
@@ -265,14 +349,7 @@ def _export_xlsx(data, base_name):
     wb = openpyxl.Workbook()
     wb.remove(wb.active)
 
-    sections = [
-        ("Income Statement", data.get("income_statement")),
-        ("Balance Sheet", data.get("balance_sheet")),
-        ("Cash Flow", data.get("cash_flow")),
-    ]
-    for i, sec in enumerate(data.get("additional_sections") or []):
-        title = sec.get("title", f"Additional {i+1}")[:31]
-        sections.append((title, sec))
+    sections = _build_section_list(data)
 
     header_font = Font(bold=True, color="FFFFFF", size=11)
     header_fill = PatternFill(start_color="2F5496", end_color="2F5496", fill_type="solid")
@@ -348,13 +425,7 @@ def _export_csv(data, base_name):
     output = io.StringIO()
     writer = csv.writer(output)
 
-    sections = [
-        ("Income Statement", data.get("income_statement")),
-        ("Balance Sheet", data.get("balance_sheet")),
-        ("Cash Flow", data.get("cash_flow")),
-    ]
-    for i, sec in enumerate(data.get("additional_sections") or []):
-        sections.append((sec.get("title", f"Additional {i+1}"), sec))
+    sections = _build_section_list(data)
 
     for section_name, section in sections:
         if not section:
@@ -395,13 +466,7 @@ def _export_pdf(data, base_name):
     elements.append(Paragraph(f"Extracted: {datetime.now().strftime('%Y-%m-%d %H:%M')}", styles['Normal']))
     elements.append(Spacer(1, 20))
 
-    sections = [
-        ("Income Statement", data.get("income_statement")),
-        ("Balance Sheet", data.get("balance_sheet")),
-        ("Cash Flow Statement", data.get("cash_flow")),
-    ]
-    for i, sec in enumerate(data.get("additional_sections") or []):
-        sections.append((sec.get("title", f"Additional {i+1}"), sec))
+    sections = _build_section_list(data)
 
     for section_name, section in sections:
         if not section:
@@ -451,13 +516,7 @@ def _export_docx(data, base_name):
     doc.add_paragraph(f"Extracted: {datetime.now().strftime('%Y-%m-%d %H:%M')}")
     doc.add_paragraph("")
 
-    sections = [
-        ("Income Statement", data.get("income_statement")),
-        ("Balance Sheet", data.get("balance_sheet")),
-        ("Cash Flow Statement", data.get("cash_flow")),
-    ]
-    for i, sec in enumerate(data.get("additional_sections") or []):
-        sections.append((sec.get("title", f"Additional {i+1}"), sec))
+    sections = _build_section_list(data)
 
     for section_name, section in sections:
         if not section:

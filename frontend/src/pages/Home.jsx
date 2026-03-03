@@ -28,7 +28,7 @@ const EXTRACTION_SECTIONS = [
         shortTitle: 'Income',
         description: 'Revenue, expenses, and net profit/loss.',
         icon: BanknotesIcon,
-        category: 'Core Statements',
+        category: 'Financial Statements',
     },
     {
         key: 'balance_sheet',
@@ -36,7 +36,7 @@ const EXTRACTION_SECTIONS = [
         shortTitle: 'Balance Sheet',
         description: 'Assets, liabilities, and equity.',
         icon: BuildingLibraryIcon,
-        category: 'Core Statements',
+        category: 'Financial Statements',
     },
     {
         key: 'cash_flow',
@@ -44,7 +44,7 @@ const EXTRACTION_SECTIONS = [
         shortTitle: 'Cash Flow',
         description: 'Operating, investing, and financing.',
         icon: CurrencyDollarIcon,
-        category: 'Core Statements',
+        category: 'Financial Statements',
     },
     {
         key: 'comprehensive_income',
@@ -52,7 +52,7 @@ const EXTRACTION_SECTIONS = [
         shortTitle: 'OCI',
         description: 'Profit or loss plus OCI items.',
         icon: ChartBarSquareIcon,
-        category: 'Additional',
+        category: 'Financial Statements',
     },
     {
         key: 'changes_in_equity',
@@ -60,7 +60,7 @@ const EXTRACTION_SECTIONS = [
         shortTitle: 'Equity',
         description: 'Share capital, reserves, retained earnings.',
         icon: ScaleIcon,
-        category: 'Additional',
+        category: 'Financial Statements',
     },
     {
         key: 'auditors_report',
@@ -68,7 +68,7 @@ const EXTRACTION_SECTIONS = [
         shortTitle: 'Audit',
         description: 'Audit opinion and key matters.',
         icon: ShieldCheckIcon,
-        category: 'Additional',
+        category: 'Financial Statements',
     },
 ];
 

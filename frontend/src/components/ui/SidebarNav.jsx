@@ -4,10 +4,12 @@ import {
   HomeIcon,
   Cog6ToothIcon,
   XMarkIcon,
+  BoltIcon,
 } from '@heroicons/react/24/outline';
 
 const navItems = [
   { label: 'Home', path: '/home', icon: HomeIcon },
+  { label: 'Pricing', path: '/pricing', icon: BoltIcon },
   { label: 'Settings', path: '/settings', icon: Cog6ToothIcon },
 ];
 
@@ -26,12 +28,10 @@ const SidebarNav = ({ isOpen, onClose }) => {
       )}
 
       <aside
-        className={`fixed top-0 left-0 z-40 h-screen w-[272px] bg-white border-r border-slate-200 flex flex-col transition-transform duration-300 lg:translate-x-0 ${
-          isOpen ? 'translate-x-0' : '-translate-x-full'
-        }`}
+        className={`flex items-center top-0 left-0 z-40 h-16 w-full justify-between bg-white border-b border-slate-200 transition-transform duration-300 lg:translate-x-0`}
       >
         {/* Logo */}
-        <div className="flex items-center justify-between h-16 px-5 border-b border-slate-100 shrink-0">
+        <div className="flex items-center h-16 px-5 shrink-0">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 bg-slate-900 rounded-lg flex items-center justify-center">
               <span className="text-white text-sm font-bold">BL</span>
@@ -43,14 +43,14 @@ const SidebarNav = ({ isOpen, onClose }) => {
           </div>
           <button
             onClick={onClose}
-            className="lg:hidden w-8 h-8 rounded-lg flex items-center justify-center hover:bg-slate-100"
+            className="lg:hidden ml-3 w-8 h-8 rounded-lg flex items-center justify-center hover:bg-slate-100"
           >
             <XMarkIcon className="w-5 h-5 text-slate-500" />
           </button>
         </div>
 
         {/* Nav links */}
-        <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-1">
+        <nav className="flex items-center px-3 gap-1">
           {navItems.map((item) => {
             const Icon = item.icon;
             const active = isActive(item.path);
@@ -60,7 +60,7 @@ const SidebarNav = ({ isOpen, onClose }) => {
                 key={item.label}
                 to={item.path}
                 onClick={onClose}
-                className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${
+                className={`flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium transition-colors ${
                   active
                     ? 'bg-slate-900 text-white'
                     : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
@@ -73,11 +73,10 @@ const SidebarNav = ({ isOpen, onClose }) => {
           })}
         </nav>
 
-        {/* Footer */}
-        <div className="p-4 border-t border-slate-100 shrink-0">
-          <div className="bg-slate-50 rounded-xl p-3">
-            <p className="text-xs font-medium text-slate-600">PDF Extractor v2.0</p>
-            <p className="text-[10px] text-slate-400 mt-0.5">Annual Report Extraction Suite</p>
+        {/* Version badge */}
+        <div className="px-5 shrink-0">
+          <div className="bg-slate-50 rounded-xl px-3 py-1.5">
+            <p className="text-xs font-medium text-slate-600">v2.0</p>
           </div>
         </div>
       </aside>

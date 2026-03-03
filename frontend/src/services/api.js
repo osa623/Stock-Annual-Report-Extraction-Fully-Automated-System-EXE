@@ -38,6 +38,20 @@ export const pdfService = {
   },
 
   /**
+   * Extract a SINGLE statement type from the uploaded PDF.
+   * @param {string} pdfId
+   * @param {string} statementKey - e.g. 'income_statement', 'balance_sheet', 'cash_flow',
+   *   'comprehensive_income', 'changes_in_equity', 'auditors_report'
+   * @returns {{ success, pdf_id, statement_key, display_name, data }}
+   */
+  extractStatement: async (pdfId, statementKey) => {
+    const response = await api.post(`/extract/${pdfId}/${statementKey}`, {}, {
+      timeout: 600000, // 10 min for single statement — large PDFs can be slow
+    });
+    return response.data;
+  },
+
+  /**
    * Connect to SSE progress stream for real-time extraction updates.
    * Opens an EventSource to the backend and calls onProgress(data) for each event.
    * Returns the EventSource instance (caller should close it when done).

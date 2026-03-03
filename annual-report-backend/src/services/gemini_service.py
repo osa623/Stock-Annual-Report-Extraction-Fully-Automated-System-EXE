@@ -94,12 +94,96 @@ Return a JSON object with this EXACT structure:
 {_COMMON_RULES}
 """
 
-# Statement extraction config: (key, prompt, display_name)
+PROMPT_COMPREHENSIVE_INCOME = f"""You are a financial data extraction expert. Analyze the uploaded PDF and extract ONLY the **Statement of Profit or Loss and Other Comprehensive Income** (also called "Statement of Comprehensive Income", "Statement of Other Comprehensive Income", or any section showing Other Comprehensive Income items such as revaluation surplus, foreign currency translation differences, fair value changes on financial instruments, actuarial gains/losses, etc.).
+
+Do NOT extract the basic Income Statement / Statement of Profit or Loss if it is separate. Extract the section that explicitly shows Other Comprehensive Income items and Total Comprehensive Income.
+
+Return a JSON object with this EXACT structure:
+{{
+  "title": "Exact title as appears in the PDF",
+  "headers": ["Item", "Group 2024", "Group 2023", "Company 2024", "Company 2023"],
+  "rows": [
+    {{"item": "Profit for the year", "values": [50000, 45000, 40000, 38000]}},
+    {{"item": "Other comprehensive income:", "values": [null, null, null, null]}},
+    {{"item": "Revaluation surplus", "values": [2000, 1500, 1800, 1200]}},
+    {{"item": "Total comprehensive income", "values": [52000, 46500, 41800, 39200]}}
+  ],
+  "page_numbers": [11],
+  "notes": "Amounts in thousands of LKR"
+}}
+
+{_COMMON_RULES}
+"""
+
+PROMPT_CHANGES_IN_EQUITY = f"""You are a financial data extraction expert. Analyze the uploaded PDF and extract ONLY the **Statement of Changes in Equity** (also called "Statement of Changes in Shareholders' Equity", "Statement of Changes in Shareholders' Funds", or similar).
+
+This statement shows movements in equity components like Share Capital, Share Premium, Revaluation Reserve, Retained Earnings, Non-controlling Interest, Total Equity etc. over the reporting period.
+
+Return a JSON object with this EXACT structure:
+{{
+  "title": "Exact title as appears in the PDF",
+  "headers": ["Item", "Share Capital", "Share Premium", "Revaluation Reserve", "Retained Earnings", "Total Equity"],
+  "rows": [
+    {{"item": "Balance at 1 January 2024", "values": [100000, 50000, 20000, 150000, 320000]}},
+    {{"item": "Profit for the year", "values": [null, null, null, 50000, 50000]}},
+    {{"item": "Dividends paid", "values": [null, null, null, -20000, -20000]}},
+    {{"item": "Balance at 31 December 2024", "values": [100000, 50000, 20000, 180000, 350000]}}
+  ],
+  "page_numbers": [15, 16],
+  "notes": "Amounts in thousands of LKR"
+}}
+
+{_COMMON_RULES}
+"""
+
+PROMPT_AUDITORS_REPORT = f"""You are a financial data extraction expert. Analyze the uploaded PDF and extract ONLY the **Independent Auditor's Report** (also called "Report of the Independent Auditors", "Auditor's Report", or similar).
+
+This is primarily a text-based section. Extract each major section of the auditor's report as a structured entry.
+
+Return a JSON object with this EXACT structure:
+{{
+  "title": "Exact title as appears in the PDF",
+  "headers": ["Section", "Content"],
+  "rows": [
+    {{"item": "Addressee", "values": ["To the Shareholders of XYZ Company"]}},
+    {{"item": "Opinion", "values": ["In our opinion, the financial statements give a true and fair view..."]}},
+    {{"item": "Basis for Opinion", "values": ["We conducted our audit in accordance with..."]}},
+    {{"item": "Key Audit Matters", "values": ["Revenue Recognition: We identified..."]}},
+    {{"item": "Going Concern", "values": ["We have nothing to report..."]}},
+    {{"item": "Responsibilities of Management", "values": ["Management is responsible for the preparation..."]}},
+    {{"item": "Auditor's Responsibilities", "values": ["Our objectives are to obtain reasonable assurance..."]}},
+    {{"item": "Report on Other Legal and Regulatory Requirements", "values": ["As required by..."]}},
+    {{"item": "Signature / Firm", "values": ["[Audit firm name], Chartered Accountants, [Date]"]}}
+  ],
+  "page_numbers": [42, 43, 44],
+  "notes": "Text content from auditor's report"
+}}
+
+**Special rules for Auditor's Report:**
+- Extract the FULL text content of each section, not summaries.
+- Preserve paragraph structure within each section's content.
+- If a section is not present, omit that row.
+- The "values" array should contain a single string element for each row.
+- Return ONLY valid JSON. No markdown, no explanations, no code fences.
+- If the auditor's report is NOT found in this PDF, return exactly: `null`
+"""
+
+# Statement extraction config: (key, prompt, display_name) — original 3 for backward compat
 STATEMENT_CONFIGS = [
     ("income_statement", PROMPT_INCOME_STATEMENT, "Income Statement"),
     ("balance_sheet",    PROMPT_BALANCE_SHEET,    "Balance Sheet"),
     ("cash_flow",        PROMPT_CASH_FLOW,        "Cash Flow Statement"),
 ]
+
+# All available statement types for per-statement extraction
+ALL_STATEMENT_CONFIGS = {
+    "income_statement":        (PROMPT_INCOME_STATEMENT, "Income Statement"),
+    "balance_sheet":           (PROMPT_BALANCE_SHEET, "Statement of Financial Position"),
+    "cash_flow":               (PROMPT_CASH_FLOW, "Cash Flow Statement"),
+    "comprehensive_income":    (PROMPT_COMPREHENSIVE_INCOME, "Statement of Comprehensive Income"),
+    "changes_in_equity":       (PROMPT_CHANGES_IN_EQUITY, "Statement of Changes in Equity"),
+    "auditors_report":         (PROMPT_AUDITORS_REPORT, "Independent Auditor's Report"),
+}
 
 
 class GeminiFinancialExtractor:
@@ -109,6 +193,113 @@ class GeminiFinancialExtractor:
         if not GEMINI_API_KEY:
             raise ValueError("GEMINI_API_KEY is not configured")
         self.model = genai.GenerativeModel(GEMINI_MODEL)
+        self._file_cache = {}  # pdf_path -> (uploaded_file, timestamp)
+
+    # ── Gemini file upload with caching ───────────────────────────────
+
+    def _get_or_upload_file(self, pdf_path: Path):
+        """Upload PDF to Gemini or reuse cached reference if still active."""
+        cache_key = str(pdf_path)
+        if cache_key in self._file_cache:
+            ref, ts = self._file_cache[cache_key]
+            age = time.time() - ts
+            # Reuse if less than 45 min old — skip the slow get_file() check
+            # for recently cached files (under 5 min), trust the cache
+            if age < 2700:
+                if age < 300:
+                    logger.info(f"Reusing cached Gemini file (age {age:.0f}s): {ref.name}")
+                    return ref
+                # Older than 5 min — verify it's still active
+                try:
+                    info = genai.get_file(ref.name)
+                    if info.state.name == "ACTIVE":
+                        logger.info(f"Reusing cached Gemini file (verified): {ref.name}")
+                        return ref
+                except Exception:
+                    pass
+            # Stale or dead — remove
+            self._file_cache.pop(cache_key, None)
+
+        uploaded = genai.upload_file(
+            str(pdf_path),
+            mime_type="application/pdf",
+            display_name=pdf_path.name,
+        )
+        logger.info(f"Uploaded to Gemini: {uploaded.name}")
+        self._wait_for_file_active(uploaded)
+        self._file_cache[cache_key] = (uploaded, time.time())
+        return uploaded
+
+    def cleanup_cached_file(self, pdf_path: str):
+        """Remove a cached Gemini file reference and delete from Gemini."""
+        cache_key = str(pdf_path)
+        entry = self._file_cache.pop(cache_key, None)
+        if entry:
+            try:
+                genai.delete_file(entry[0].name)
+                logger.info(f"Deleted cached Gemini file: {entry[0].name}")
+            except Exception:
+                pass
+
+    # ── Single-statement extraction ───────────────────────────────────
+
+    def extract_single(self, pdf_path: str, statement_key: str, progress_callback=None) -> dict:
+        """
+        Extract a SINGLE financial statement type from a PDF.
+        Uses cached Gemini upload if available.
+
+        Args:
+            pdf_path: Absolute path to the PDF file
+            statement_key: Key from ALL_STATEMENT_CONFIGS
+            progress_callback: Optional callable(step, total, message)
+
+        Returns:
+            Dict with the statement data, or None if not found.
+        """
+        config = ALL_STATEMENT_CONFIGS.get(statement_key)
+        if not config:
+            raise ValueError(f"Unknown statement type: '{statement_key}'. "
+                             f"Valid keys: {list(ALL_STATEMENT_CONFIGS.keys())}")
+
+        prompt, display_name = config
+        pdf_path = Path(pdf_path)
+        total_steps = 4  # validate, upload/cache, extract, done
+
+        def emit(step, message):
+            if progress_callback:
+                try:
+                    progress_callback(step, total_steps, message)
+                except Exception:
+                    pass
+
+        # Step 1: Validate
+        emit(1, "Validating PDF file...")
+        if not pdf_path.exists():
+            raise FileNotFoundError(f"PDF not found: {pdf_path}")
+        if pdf_path.suffix.lower() != ".pdf":
+            raise ValueError(f"Not a PDF file: {pdf_path.name}")
+
+        # Step 2: Upload or reuse cached
+        emit(2, "Preparing document for AI processing...")
+        try:
+            uploaded_file = self._get_or_upload_file(pdf_path)
+        except Exception as e:
+            raise RuntimeError(f"Failed to upload PDF to AI service: {e}") from e
+
+        # Step 3: Extract the specific statement
+        emit(3, f"Extracting {display_name}...")
+        logger.info(f"Extracting single statement: {display_name}")
+
+        start = time.time()
+        section_data = self._extract_single_statement(uploaded_file, prompt, display_name)
+        elapsed = time.time() - start
+        rows = self._row_count(section_data)
+        logger.info(f"  {display_name} done in {elapsed:.1f}s — {rows} rows")
+
+        # Step 4: Done
+        emit(4, f"{display_name} extraction complete — {rows} rows")
+
+        return section_data
 
     def extract_from_pdf(self, pdf_path: str, progress_callback=None) -> dict:
         """
@@ -290,6 +481,7 @@ class GeminiFinancialExtractor:
             return None
 
         # ── Attempt 1: direct parse ──────────────────────────────────
+        parse_error = None
         try:
             data = json.loads(text)
             if data is None:
@@ -298,8 +490,9 @@ class GeminiFinancialExtractor:
                 return data
             logger.warning(f"Unexpected response type: {type(data)}")
             return None
-        except json.JSONDecodeError as first_err:
-            logger.warning(f"Direct JSON parse failed ({len(text)} chars): {first_err}")
+        except json.JSONDecodeError as e:
+            parse_error = e
+            logger.warning(f"Direct JSON parse failed ({len(text)} chars): {e}")
             logger.warning(f"Last 300 chars: ...{text[-300:]}")
 
         # ── Attempt 2: truncation repair ─────────────────────────────
@@ -326,13 +519,10 @@ class GeminiFinancialExtractor:
             logger.error(f"Repair also failed. First 1000 chars: {text[:1000]}")
             raise RuntimeError(
                 "Received an incomplete response. Please try again."
-            ) from first_err
+            ) from parse_error
 
     @staticmethod
     def _row_count(section) -> int:
-        if section and isinstance(section, dict):
-            return len(section.get("rows", []))
-        return 0
         if section and isinstance(section, dict):
             return len(section.get("rows", []))
         return 0

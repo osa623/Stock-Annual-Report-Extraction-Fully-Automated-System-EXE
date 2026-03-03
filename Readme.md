@@ -38,7 +38,8 @@ The extraction engine has evolved through multiple iterations to achieve maximum
 **Report Data Extraction (new — frontend UI)**
 | Section | Category |
 |---|---|
-| Chairman's Review | Leadership Reports |
+| Chairman's Review || CEO Message || Chairperson Message || President Message | Leadership Reports |
+| About the Company | Company Status |
 | Managing Director's Report | Leadership Reports |
 | Management Discussion & Analysis | Leadership Reports |
 | Corporate Governance | Governance & Risk |

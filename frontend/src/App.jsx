@@ -1,80 +1,58 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 
-// Components
-import Header from './components/Header';
-import ProtectedRoutes from './components/ProtectedRoutes';
-
 // Layout
 import DashboardLayout from './layouts/DashboardLayout';
 
-// Existing pages
-import Dashboard from './pages/Dashboard';
-import PDFDetail from './pages/PDFDetail';
-import CompanyDetails from './pages/CompanyDetails';
-import OtherExtraction from './pages/OtherExtraction';
-import ShareholderPage from './pages/ShareholderPage';
-import InvestorRelationsPage from './pages/InvestorRelationsPage';
-import SubsidiaryPage from './pages/SubsidiaryPage';
+// Pages
+import Landing from './pages/Landing';
 import Home from './pages/Home';
+import Pricing from './pages/Pricing';
 import Login from './pages/Login';
 import Registration from './pages/Registration';
 import MFAsetupForm from './pages/MFAsetupForm';
 import MFAverifyForm from './pages/MFAverifyForm';
 import Profile from './pages/Profile';
-import DataExplorer from './pages/DataExplorer';
-import ImageExtractor from './pages/ImageExtractor';
-
-// New pages
-import ExtractionHub from './pages/ExtractionHub';
-import ReportSectionsIndex from './pages/ReportSectionsIndex';
-import ReportSectionPage from './pages/ReportSectionPage';
 import Settings from './pages/Settings';
 
+// Contexts
 import AuthProvider from './utils/AuthContext';
+import CreditProvider from './utils/CreditContext';
 
-/** Wrap content in sidebar + topbar layout */
+/** Wrap content in sidebar + topbar layout (accessible to all users) */
 const WithLayout = ({ children }) => (
-  <ProtectedRoutes>
-    <DashboardLayout>{children}</DashboardLayout>
-  </ProtectedRoutes>
+  <DashboardLayout>{children}</DashboardLayout>
 );
 
 function App() {
   return (
     <AuthProvider>
-      <Router>
-        <Routes>
-          {/* ─── Non-Protected (Auth) Routes ─── */}
-          <Route path="/" element={<Navigate to="/login" replace />} />
-          <Route path="/register" element={<><Header /><Registration /></>} />
-          <Route path="/login" element={<><Header /><Login /></>} />
-          <Route path="/setup-mfa" element={<><Header /><MFAsetupForm /></>} />
-          <Route path="/verify-mfa" element={<><Header /><MFAverifyForm /></>} />
+      <CreditProvider>
+        <Router>
+          <Routes>
+            {/* ─── Public Landing ─── */}
+            <Route path="/" element={<Landing />} />
 
-          {/* ─── Protected Routes (wrapped in DashboardLayout) ─── */}
-          <Route path="/home" element={<WithLayout><Home /></WithLayout>} />
-          <Route path="/extraction-hub" element={<WithLayout><ExtractionHub /></WithLayout>} />
-          <Route path="/report-sections" element={<WithLayout><ReportSectionsIndex /></WithLayout>} />
-          <Route path="/report-sections/:sectionKey" element={<WithLayout><ReportSectionPage /></WithLayout>} />
-          <Route path="/settings" element={<WithLayout><Settings /></WithLayout>} />
+            {/* ─── Auth Routes (no layout) ─── */}
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Registration />} />
+            <Route path="/setup-mfa" element={<MFAsetupForm />} />
+            <Route path="/verify-mfa" element={<MFAverifyForm />} />
 
-          {/* Existing module routes — unchanged behavior */}
-          <Route path="/dashboard" element={<WithLayout><Dashboard /></WithLayout>} />
-          <Route path="/data-explorer" element={<WithLayout><DataExplorer /></WithLayout>} />
-          <Route path="/image-extractor" element={<WithLayout><ImageExtractor /></WithLayout>} />
+            {/* ─── App Routes (with layout, accessible by all users) ─── */}
+            <Route path="/home" element={<WithLayout><Home /></WithLayout>} />
+            <Route path="/pricing" element={<WithLayout><Pricing /></WithLayout>} />
+            <Route path="/settings" element={<WithLayout><Settings /></WithLayout>} />
+            <Route path="/profile/:userId" element={<WithLayout><Profile /></WithLayout>} />
 
-          <Route path="/pdf/:pdfId/statements" element={<WithLayout><PDFDetail /></WithLayout>} />
-          <Route path="/pdf/:pdfId/company" element={<WithLayout><CompanyDetails /></WithLayout>} />
-          <Route path="/pdf/:pdfId/other" element={<WithLayout><OtherExtraction /></WithLayout>} />
-          <Route path="/pdf/:pdfId/shareholders" element={<WithLayout><ShareholderPage /></WithLayout>} />
-          <Route path="/pdf/:pdfId/investor-relations" element={<WithLayout><InvestorRelationsPage /></WithLayout>} />
-          <Route path="/pdf/:pdfId/subsidiary" element={<WithLayout><SubsidiaryPage /></WithLayout>} />
-          <Route path="/pdf/:pdfId" element={<WithLayout><PDFDetail /></WithLayout>} />
-
-          <Route path="/profile/:userId" element={<WithLayout><Profile /></WithLayout>} />
-        </Routes>
-      </Router>
+            {/* ─── Redirect old routes ─── */}
+            <Route path="/extract" element={<Navigate to="/home" replace />} />
+            <Route path="/extraction-hub" element={<Navigate to="/home" replace />} />
+            <Route path="/report-sections" element={<Navigate to="/home" replace />} />
+            <Route path="/report-sections/:sectionKey" element={<Navigate to="/home" replace />} />
+          </Routes>
+        </Router>
+      </CreditProvider>
     </AuthProvider>
   );
 }
